@@ -32,7 +32,7 @@ main.config(['configurationProvider', function(configuration) {
 main.controller('vs.MainController', ['$scope', '$templateCache', function($scope, $templateCache) {
   this.controller = {
     dataContexts: [
-/*      u.reflection.wrap({
+      u.reflection.wrap({
         name: 'Genetic Variants',
         children: [],
         dataChanged: new u.Event(),
@@ -303,7 +303,7 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
             }
           ]
         }, vs.models.DataSource)
-      }, vs.ui.DataHandler),*/
+      }, vs.ui.DataHandler),
       u.reflection.wrap({
         name: 'Other data',
         children: [],
