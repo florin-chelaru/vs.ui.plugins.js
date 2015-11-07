@@ -1,2 +1,2 @@
-# vs.ui.plugins.js
+# visualization.js
 Visualization plugins for vis.js
