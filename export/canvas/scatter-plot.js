@@ -4,7 +4,7 @@
  * Time: 2:20 PM
  */
 
-goog.require('visualization.canvas.ScatterPlot');
+goog.require('vs.ui.plugins.canvas.ScatterPlot');
 
-goog.exportSymbol('visualization.canvas.ScatterPlot', visualization.canvas.ScatterPlot);
-goog.exportProperty(visualization.canvas.ScatterPlot.prototype, 'endDraw', visualization.canvas.ScatterPlot.prototype.endDraw);
+goog.exportSymbol('vs.ui.plugins.canvas.ScatterPlot', vs.ui.plugins.canvas.ScatterPlot);
+goog.exportProperty(vs.ui.plugins.canvas.ScatterPlot.prototype, 'endDraw', vs.ui.plugins.canvas.ScatterPlot.prototype.endDraw);

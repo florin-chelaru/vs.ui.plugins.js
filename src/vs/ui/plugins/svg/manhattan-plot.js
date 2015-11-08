@@ -1,46 +1,49 @@
 /**
  * Created by Florin Chelaru ( florin [dot] chelaru [at] gmail [dot] com )
- * Date: 8/27/2015
- * Time: 2:20 PM
+ * Date: 9/22/2015
+ * Time: 12:19 PM
  */
 
-goog.provide('visualization.svg.ScatterPlot');
+goog.provide('vs.ui.plugins.svg.ManhattanPlot');
+
+goog.require('vs.ui');
 
 /*
-goog.require('vs.ui.svg.SvgVis');
 goog.require('vs.models.DataRow');
+goog.require('vs.ui.svg.SvgVis');
 */
 
 /**
  * @constructor
  * @extends vs.ui.svg.SvgVis
  */
-visualization.svg.ScatterPlot = function() {
+vs.ui.plugins.svg.ManhattanPlot = function() {
   vs.ui.svg.SvgVis.apply(this, arguments);
 };
 
-goog.inherits(visualization.svg.ScatterPlot, vs.ui.svg.SvgVis);
+goog.inherits(vs.ui.plugins.svg.ManhattanPlot, vs.ui.svg.SvgVis);
 
 /**
  * @type {Object.<string, vs.ui.Setting>}
  */
-visualization.svg.ScatterPlot.Settings = u.extend({}, vs.ui.VisHandler.Settings, {
+vs.ui.plugins.svg.ManhattanPlot.Settings = u.extend({}, vs.ui.VisHandler.Settings, {
+  'rows': vs.ui.Setting.PredefinedSettings['rows'],
   'vals': vs.ui.Setting.PredefinedSettings['vals'],
-  'xBoundaries': vs.ui.Setting.PredefinedSettings['xBoundaries'],
+  'xBoundaries': new vs.ui.Setting({key:'xBoundaries', type:'vs.models.Boundaries', defaultValue:vs.ui.Setting.rowBoundaries, label:'x boundaries', template:'_boundaries.html'}),
   'yBoundaries': vs.ui.Setting.PredefinedSettings['yBoundaries'],
   'xScale': vs.ui.Setting.PredefinedSettings['xScale'],
   'yScale': vs.ui.Setting.PredefinedSettings['yScale'],
   'cols': vs.ui.Setting.PredefinedSettings['cols']
 });
 
-Object.defineProperties(visualization.svg.ScatterPlot.prototype, {
-  'settings': { get: /** @type {function (this:visualization.svg.ScatterPlot)} */ (function() { return visualization.svg.ScatterPlot.Settings; })}
+Object.defineProperties(vs.ui.plugins.svg.ManhattanPlot.prototype, {
+  'settings': { get: /** @type {function (this:vs.ui.plugins.svg.ManhattanPlot)} */ (function() { return vs.ui.plugins.svg.ManhattanPlot.Settings; })}
 });
 
 /**
  * @override
  */
-visualization.svg.ScatterPlot.prototype.endDraw = function() {
+vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw = function() {
   var self = this;
   var args = arguments;
   return new Promise(function(resolve, reject) {
@@ -56,8 +59,7 @@ visualization.svg.ScatterPlot.prototype.endDraw = function() {
         var xScale = self.optionValue('xScale');
         var yScale = self.optionValue('yScale');
         var cols = self.optionValue('cols');
-        var xCol = cols[0];
-        var yCol = cols[1];
+        var row = self.optionValue('rows')[0];
         var valsLabel = self.optionValue('vals');
 
         var svg = d3.select(self.$element[0]).select('svg');
@@ -80,9 +82,9 @@ visualization.svg.ScatterPlot.prototype.endDraw = function() {
 
         selection
           .attr('r', 3)
-          .attr('cx', function(d) { return xScale(d.val(xCol, valsLabel)); })
-          .attr('cy', function(d) { return yScale(d.val(yCol, valsLabel)); })
-          .attr('fill', '#ff6520');
+          .attr('cx', function(d) { return xScale(parseFloat(d.info(row))); })
+          .attr('cy', function(d) { return yScale(d.val(cols[0], valsLabel)); })
+          .attr('fill', '#1e60d4');
 
         selection.exit()
           .remove();

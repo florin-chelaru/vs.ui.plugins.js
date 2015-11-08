@@ -4,7 +4,7 @@
  * Time: 12:19 PM
  */
 
-goog.require('visualization.svg.ManhattanPlot');
+goog.require('vs.ui.plugins.svg.ManhattanPlot');
 
-goog.exportSymbol('visualization.svg.ManhattanPlot', visualization.svg.ManhattanPlot);
-goog.exportProperty(visualization.svg.ManhattanPlot.prototype, 'endDraw', visualization.svg.ManhattanPlot.prototype.endDraw);
+goog.exportSymbol('vs.ui.plugins.svg.ManhattanPlot', vs.ui.plugins.svg.ManhattanPlot);
+goog.exportProperty(vs.ui.plugins.svg.ManhattanPlot.prototype, 'endDraw', vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw);

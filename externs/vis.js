@@ -8,6 +8,8 @@
 // Load: https://rawgit.com/florin-chelaru/utils.js/master/utils.min.js
 // Load: https://code.angularjs.org/1.4.4/angular.min.js
 // Load: https://rawgit.com/florin-chelaru/vis.js/master/vis.min.js
+
+/** @suppress {duplicate} */
 var vs = {
   "async": {
     "TaskService": function () {},

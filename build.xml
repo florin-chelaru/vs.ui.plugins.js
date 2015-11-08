@@ -17,8 +17,8 @@
   <property name="export" value="${rootpath}/export"/>
   <property name="externs" value="${rootpath}/externs"/>
 
-  <property name="compiled" value="visualization.js"/>
-  <property name="compiledmin" value="visualization.min.js"/>
+  <property name="compiled" value="vs.ui.plugins.js"/>
+  <property name="compiledmin" value="vs.ui.plugins.min.js"/>
 
   <loadfile property="license" srcfile="LICENSE"/>
 
@@ -39,7 +39,7 @@
       <arg line="--root=&quot;${closure_src}&quot;"/>
       <arg line="--root=&quot;${closure_tp_src}&quot;"/>
       <arg line="--root=&quot;${src}&quot;"/>
-      <arg line="--namespace=&quot;visualization&quot;"/>
+      <arg line="--namespace=&quot;vs.ui.plugins&quot;"/>
       <redirector outputproperty="srcfiles" errorproperty="depserr">
         <outputfilterchain>
           <replacestring from="\" to="/"/>
@@ -60,7 +60,7 @@
       <arg line="--root=&quot;${closure_src}&quot;"/>
       <arg line="--root=&quot;${closure_tp_src}&quot;"/>
       <arg line="--root=&quot;${src}&quot;"/>
-      <arg line="--namespace=&quot;visualization&quot;"/>
+      <arg line="--namespace=&quot;vs.ui.plugins&quot;"/>
       <redirector outputproperty="libfiles" errorproperty="depserr">
         <outputfilterchain>
           <linecontains negate="true">

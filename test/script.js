@@ -12,13 +12,13 @@ main.config(['configurationProvider', function(configuration) {
   configuration.customize({
     visualizations: {
       scatterplot: {
-        canvas: 'visualization.canvas.ScatterPlot',
-        svg: 'visualization.svg.ScatterPlot',
+        canvas: 'vs.ui.plugins.canvas.ScatterPlot',
+        svg: 'vs.ui.plugins.svg.ScatterPlot',
         default: 'svg'
       },
       manhattan: {
-        svg: 'visualization.svg.ManhattanPlot',
-        canvas: 'visualization.canvas.ManhattanPlot',
+        svg: 'vs.ui.plugins.svg.ManhattanPlot',
+        canvas: 'vs.ui.plugins.canvas.ManhattanPlot',
         default: 'svg'
       }
     },
