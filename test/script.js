@@ -24,7 +24,7 @@ main.config(['configurationProvider', function(configuration) {
     },
     parallel: {
       nthreads: 16,
-      worker: '/vis/test/worker.js'
+      worker: '/vis-ui/test/worker.js'
     }
   })
 }]);

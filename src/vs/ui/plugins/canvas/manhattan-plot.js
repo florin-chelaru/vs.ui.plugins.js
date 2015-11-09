@@ -55,11 +55,11 @@ vs.ui.plugins.canvas.ManhattanPlot.prototype.endDraw = function() {
         if (!data.nrows) { return; }
 
         var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
-        var xScale = self.optionValue('xScale');
-        var yScale = self.optionValue('yScale');
-        var cols = self.optionValue('cols');
-        var row = self.optionValue('rows')[0];
-        var valsLabel = self.optionValue('vals');
+        var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
+        var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
+        var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
+        var row = (/** @type {Array.<string>} */ (self.optionValue('rows')))[0];
+        var valsLabel = /** @type {string} */ (self.optionValue('vals'));
 
         var context = self.pendingCanvas[0].getContext('2d');
 

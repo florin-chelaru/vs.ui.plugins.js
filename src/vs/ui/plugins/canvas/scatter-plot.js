@@ -52,13 +52,15 @@ vs.ui.plugins.canvas.ScatterPlot.prototype.endDraw = function() {
         // Nothing to draw
         if (!data.nrows) { return; }
 
-        var margins = self.optionValue('margins');
-        var xScale = self.optionValue('xScale');
-        var yScale = self.optionValue('yScale');
-        var cols = self.optionValue('cols');
+        var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
+        var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
+        var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
+        var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
+        var valsLabel = /** @type {string} */ (self.optionValue('vals'));
+
         var xCol = cols[0];
         var yCol = cols[1];
-        var valsLabel = self.optionValue('vals');
+
 
         var context = self.pendingCanvas[0].getContext('2d');
 

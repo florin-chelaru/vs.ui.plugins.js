@@ -1,11 +1,11 @@
 {
-  "name": "vis.ui.plugins.js",
+  "name": "vs.ui.plugins.js",
   "version": "0.0.0",
   "authors": [
     "Florin Chelaru <florinc@mit.edu>"
   ],
   "description": "Visualization plugins for vis.js",
-  "main": "vis.ui.plugins.js",
+  "main": "vs.ui.plugins.js",
   "moduleType": [
     "globals"
   ],

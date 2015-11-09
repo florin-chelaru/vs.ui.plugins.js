@@ -4,7 +4,7 @@
  * Time: 7:30 PM
  */
 
-DOMAIN_BASE_PATH = '/vis/';
+DOMAIN_BASE_PATH = '/vis-ui/';
 CLOSURE_BASE_PATH = DOMAIN_BASE_PATH + 'bower_components/google-closure-library/closure/goog/';
 SRC_BASE_PATH = DOMAIN_BASE_PATH + 'test/';
 importScripts(
