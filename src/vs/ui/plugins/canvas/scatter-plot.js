@@ -6,8 +6,9 @@
 
 goog.provide('vs.ui.plugins.canvas.ScatterPlot');
 
-goog.require('vs.ui');
-
+if (COMPILED) {
+  goog.require('vs.ui');
+}
 /*
 goog.require('vs.ui.canvas.CanvasVis');
 goog.require('vs.models.DataRow');

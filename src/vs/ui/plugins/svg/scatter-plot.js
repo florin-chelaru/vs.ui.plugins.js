@@ -6,8 +6,9 @@
 
 goog.provide('vs.ui.plugins.svg.ScatterPlot');
 
-goog.require('vs.ui');
-
+if (COMPILED) {
+  goog.require('vs.ui');
+}
 /*
 goog.require('vs.ui.svg.SvgVis');
 goog.require('vs.models.DataRow');

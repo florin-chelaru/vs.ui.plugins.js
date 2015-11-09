@@ -6,7 +6,9 @@
 
 goog.provide('vs.ui.plugins.canvas.ManhattanPlot');
 
-goog.require('vs.ui');
+if (COMPILED) {
+  goog.require('vs.ui');
+}
 
 /*
 goog.require('vs.ui.canvas.CanvasVis');
