@@ -48,49 +48,48 @@ vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw = function() {
   var self = this;
   var args = arguments;
   return new Promise(function(resolve, reject) {
-    vs.ui.svg.SvgVis.prototype.draw.apply(self, args)
-      .then(function() {
-        /** @type {vs.models.DataSource} */
-        var data = self.data;
+    /** @type {vs.models.DataSource} */
+    var data = self.data;
 
-        // Nothing to draw
-        if (!data.nrows) { return; }
+    // Nothing to draw
+    if (!data.nrows) { resolve(); return; }
 
-        var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
-        var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
-        var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
-        var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
-        var row = (/** @type {Array.<string>} */ (self.optionValue('rows')))[0];
-        var valsLabel = /** @type {string} */ (self.optionValue('vals'));
+    var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
+    var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
+    var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
+    var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
+    var row = (/** @type {Array.<string>} */ (self.optionValue('rows')))[0];
+    var valsLabel = /** @type {string} */ (self.optionValue('vals'));
 
-        var svg = d3.select(self.$element[0]).select('svg');
+    var svg = d3.select(self.$element[0]).select('svg');
 
-        var viewport = svg.select('.viewport');
-        if (viewport.empty()) {
-          viewport = svg.append('g')
-            .attr('class', 'viewport');
-        }
-        viewport
-          .attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
+    var viewport = svg.select('.viewport');
+    if (viewport.empty()) {
+      viewport = svg.append('g')
+        .attr('class', 'viewport');
+    }
+    viewport
+      .attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
 
-        var items = u.array.range(data.nrows).map(function(i) {
-          return new vs.models.DataRow(data, i);
-        });
-        var selection = viewport.selectAll('circle').data(items);
+    var items = u.array.range(data.nrows).map(function(i) {
+      return new vs.models.DataRow(data, i);
+    });
+    var selection = viewport.selectAll('circle').data(items);
 
-        selection.enter()
-          .append('circle');
+    selection.enter()
+      .append('circle');
 
-        selection
-          .attr('r', 3)
-          .attr('cx', function(d) { return xScale(parseFloat(d.info(row))); })
-          .attr('cy', function(d) { return yScale(d.val(cols[0], valsLabel)); })
-          .attr('fill', '#1e60d4');
+    selection
+      .attr('r', 3)
+      .attr('cx', function(d) { return xScale(parseFloat(d.info(row))); })
+      .attr('cy', function(d) { return yScale(d.val(cols[0], valsLabel)); })
+      .attr('fill', '#1e60d4');
 
-        selection.exit()
-          .remove();
+    selection.exit()
+      .remove();
 
-        resolve();
-      }, reject);
+    resolve();
+  }).then(function() {
+    return vs.ui.svg.SvgVis.prototype.endDraw.apply(self, args);
   });
 };

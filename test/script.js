@@ -6,6 +6,8 @@
 
 goog.require('goog.string.format');
 
+u.log.VERBOSE = 'info';
+
 var main = angular.module('main', ['vs']);
 
 main.config(['configurationProvider', function(configuration) {

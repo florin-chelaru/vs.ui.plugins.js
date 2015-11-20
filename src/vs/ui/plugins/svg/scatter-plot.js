@@ -47,51 +47,50 @@ vs.ui.plugins.svg.ScatterPlot.prototype.endDraw = function() {
   var self = this;
   var args = arguments;
   return new Promise(function(resolve, reject) {
-    vs.ui.svg.SvgVis.prototype.draw.apply(self, args)
-      .then(function() {
-        /** @type {vs.models.DataSource} */
-        var data = self.data;
+    /** @type {vs.models.DataSource} */
+    var data = self.data;
 
-        // Nothing to draw
-        if (!data.nrows) { return; }
+    // Nothing to draw
+    if (!data.nrows) { resolve(); return; }
 
-        var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
-        var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
-        var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
-        var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
-        var valsLabel = /** @type {string} */ (self.optionValue('vals'));
+    var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
+    var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
+    var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
+    var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
+    var valsLabel = /** @type {string} */ (self.optionValue('vals'));
 
-        var xCol = cols[0];
-        var yCol = cols[1];
-        
-        var svg = d3.select(self.$element[0]).select('svg');
+    var xCol = cols[0];
+    var yCol = cols[1];
 
-        var viewport = svg.select('.viewport');
-        if (viewport.empty()) {
-          viewport = svg.append('g')
-            .attr('class', 'viewport');
-        }
-        viewport
-          .attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
+    var svg = d3.select(self.$element[0]).select('svg');
 
-        var items = u.array.range(data.nrows).map(function(i) {
-          return new vs.models.DataRow(data, i);
-        });
-        var selection = viewport.selectAll('circle').data(items);
+    var viewport = svg.select('.viewport');
+    if (viewport.empty()) {
+      viewport = svg.append('g')
+        .attr('class', 'viewport');
+    }
+    viewport
+      .attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
 
-        selection.enter()
-          .append('circle');
+    var items = u.array.range(data.nrows).map(function(i) {
+      return new vs.models.DataRow(data, i);
+    });
+    var selection = viewport.selectAll('circle').data(items);
 
-        selection
-          .attr('r', 3)
-          .attr('cx', function(d) { return xScale(d.val(xCol, valsLabel)); })
-          .attr('cy', function(d) { return yScale(d.val(yCol, valsLabel)); })
-          .attr('fill', '#ff6520');
+    selection.enter()
+      .append('circle');
 
-        selection.exit()
-          .remove();
+    selection
+      .attr('r', 3)
+      .attr('cx', function(d) { return xScale(d.val(xCol, valsLabel)); })
+      .attr('cy', function(d) { return yScale(d.val(yCol, valsLabel)); })
+      .attr('fill', '#ff6520');
 
-        resolve();
-      }, reject);
+    selection.exit()
+      .remove();
+
+    resolve();
+  }).then(function() {
+    return vs.ui.svg.SvgVis.prototype.endDraw.apply(self, args);
   });
 };
