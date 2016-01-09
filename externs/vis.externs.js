@@ -733,12 +733,6 @@ vs.ui.VisHandler.prototype.data;
 vs.ui.VisHandler.prototype.sharedData;
 
 /**
- * @type {u.Event.<vs.ui.BrushingEvent>}
- * @name vs.ui.VisHandler#brushing
- */
-vs.ui.VisHandler.prototype.brushing;
-
-/**
  * @type {parallel.ThreadProxy}
  * @name vs.ui.VisHandler#thread
  */
