@@ -68,9 +68,7 @@ vs.ui.plugins.canvas.ScatterPlot.prototype.endDraw = function() {
       vs.models.Transformer
         .scale(xScale, yScale)
         .translate({x: margins.left, y: margins.top});
-    var items = u.array.range(data.nrows).map(function(i) {
-      return new vs.models.DataRow(data, i);
-    });
+    var items = data.asDataRowArray();
 
     // Instead of drawing all circles synchronously (and risk causing the browser to hang)...
     /*items.forEach(function(d) {

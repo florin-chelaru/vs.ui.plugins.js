@@ -72,13 +72,12 @@ vs.ui.plugins.svg.ScatterPlot.prototype.endDraw = function() {
     viewport
       .attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
 
-    var items = u.array.range(data.nrows).map(function(i) {
-      return new vs.models.DataRow(data, i);
-    });
-    var selection = viewport.selectAll('circle').data(items);
+    var items = data.asDataRowArray();
+    var selection = viewport.selectAll('circle').data(items, vs.models.DataSource.key);
 
     selection.enter()
-      .append('circle');
+      .append('circle')
+      .attr('class', 'vs-item');
 
     selection
       .attr('r', 3)
