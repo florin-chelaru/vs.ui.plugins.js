@@ -72,3 +72,43 @@ u.Event.prototype.fire;
  */
 u.Event.prototype.addListener;
 
+/**
+ * @param {number} x Offset
+ * @param {number} y Offset
+ * @param {number} w Width
+ * @param {number} h Height
+ * @param {number} minQuadrantRatio
+ * @param {number} maxQuadrantCapacity
+ * @constructor
+ */
+u.QuadTree = function(x, y, w, h, minQuadrantRatio, maxQuadrantCapacity) {};
+
+/**
+ * @param {number} x
+ * @param {number} y
+ * @param {number} w
+ * @param {number} h
+ * @param {*} [value]
+ */
+u.QuadTree.prototype.insert = function(x, y, w, h, value) {};
+
+/**
+ * @param {number} x
+ * @param {number} y
+ * @returns {Array.<{x: number, y: number, w: number, h: number, value: *}>}
+ */
+u.QuadTree.prototype.collisions = function(x, y) {};
+
+/**
+ * @param {number} x
+ * @param {number} y
+ * @param {number} w
+ * @param {number} h
+ * @returns {Array.<{x: number, y: number, w: number, h: number, value: *}>}
+ */
+u.QuadTree.prototype.overlaps = function(x, y, w, h) {};
+
+/**
+ * @returns {Array.<{x: number, y: number, w: number, h: number, items: Array}>}
+ */
+u.QuadTree.prototype.leaves = function() {};

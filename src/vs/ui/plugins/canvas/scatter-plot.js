@@ -21,6 +21,14 @@ goog.require('vs.models.Transformer');
  */
 vs.ui.plugins.canvas.ScatterPlot = function() {
   vs.ui.canvas.CanvasVis.apply(this, arguments);
+
+  /**
+   * @type {u.QuadTree}
+   * @private
+   */
+  this._quadTree = null;
+
+  this.data.changed.addListener(this._updateQuadTree, this);
 };
 
 goog.inherits(vs.ui.plugins.canvas.ScatterPlot, vs.ui.canvas.CanvasVis);
@@ -34,7 +42,8 @@ vs.ui.plugins.canvas.ScatterPlot.Settings = u.extend({}, vs.ui.canvas.CanvasVis.
   'yBoundaries': vs.ui.Setting.PredefinedSettings['yBoundaries'],
   'xScale': vs.ui.Setting.PredefinedSettings['xScale'],
   'yScale': vs.ui.Setting.PredefinedSettings['yScale'],
-  'cols': vs.ui.Setting.PredefinedSettings['cols']
+  'cols': vs.ui.Setting.PredefinedSettings['cols'],
+  'itemRatio': new vs.ui.Setting({'key':'itemRatio', 'type':vs.ui.Setting.Type.NUMBER, 'defaultValue': 0.02, 'label':'item ratio', 'template':'_number.html'})
 });
 
 Object.defineProperties(vs.ui.plugins.canvas.ScatterPlot.prototype, {
@@ -57,6 +66,11 @@ vs.ui.plugins.canvas.ScatterPlot.prototype.endDraw = function() {
     var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
     var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
     var valsLabel = /** @type {string} */ (self.optionValue('vals'));
+    var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
+    var width = /** @type {number} */ (self.optionValue('width'));
+    var height = /** @type {number} */ (self.optionValue('height'));
+
+    var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
 
     var xCol = cols[0];
     var yCol = cols[1];
@@ -83,7 +97,7 @@ vs.ui.plugins.canvas.ScatterPlot.prototype.endDraw = function() {
       return new Promise(function(drawCircleResolve, drawCircleReject) {
         setTimeout(function() {
           var point = transform.calc({x: d.val(xCol, valsLabel), y: d.val(yCol, valsLabel)});
-          vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, 3, '#ff6520');
+          vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, '#ff6520');
           drawCircleResolve();
         }, 0);
       });
@@ -92,3 +106,60 @@ vs.ui.plugins.canvas.ScatterPlot.prototype.endDraw = function() {
     return vs.ui.canvas.CanvasVis.prototype.endDraw.apply(self, args);
   });
 };
+
+/**
+ * @param {number} x
+ * @param {number} y
+ * @returns {Array.<vs.models.DataRow>}
+ */
+vs.ui.plugins.canvas.ScatterPlot.prototype.getItemsAt = function(x, y) {
+  var margins = /** @type {vs.models.Margins} */ (this.optionValue('margins'));
+  var xScale = /** @type {function(number): number} */ (this.optionValue('xScale'));
+  var yScale = /** @type {function(number): number} */ (this.optionValue('yScale'));
+  var cols = /** @type {Array.<string>} */ (this.optionValue('cols'));
+  var valsLabel = /** @type {string} */ (this.optionValue('vals'));
+  var itemRatio = /** @type {number} */ (this.optionValue('itemRatio'));
+  var width = /** @type {number} */ (this.optionValue('width'));
+  var height = /** @type {number} */ (this.optionValue('height'));
+  var xBoundaries = /** @type {vs.models.Boundaries} */ (this.optionValue('xBoundaries'));
+  var yBoundaries = /** @type {vs.models.Boundaries} */ (this.optionValue('yBoundaries'));
+  var xCol = cols[0];
+  var yCol = cols[1];
+
+
+  if (!this._quadTree) { return []; }
+  var xval = (x - margins.left) * (xBoundaries.max - xBoundaries.min) / (width - margins.left - margins.right);
+  var yval = (height - y - margins.bottom) * (yBoundaries.max - yBoundaries.min) / (height - margins.top - margins.bottom);
+
+  console.log(x, y, xval, yval);
+
+  var ret = this._quadTree.collisions(xval, yval).map(function(v) { return v.value; });
+  console.log(JSON.stringify(ret.map(function(d) { return {x: d.val(xCol, valsLabel), y: d.val(yCol, valsLabel)}; })));
+
+  return ret;
+};
+
+vs.ui.plugins.canvas.ScatterPlot.prototype._updateQuadTree = function() {
+  var cols = /** @type {Array.<string>} */ (this.optionValue('cols'));
+  var valsLabel = /** @type {string} */ (this.optionValue('vals'));
+  var xBoundaries = /** @type {vs.models.Boundaries} */ (this.optionValue('xBoundaries'));
+  var yBoundaries = /** @type {vs.models.Boundaries} */ (this.optionValue('yBoundaries'));
+  var itemRatio = /** @type {number} */ (this.optionValue('itemRatio'));
+
+  var xCol = cols[0];
+  var yCol = cols[1];
+
+  var qt = new u.QuadTree(xBoundaries.min, yBoundaries.min, xBoundaries.max - xBoundaries.min, yBoundaries.max - yBoundaries.min, itemRatio, 10);
+
+  var items = this.data.asDataRowArray();
+  var w = 2 * itemRatio * (xBoundaries.max - xBoundaries.min);
+  var h = 2 * itemRatio * (yBoundaries.max - yBoundaries.min);
+  items.forEach(function(d) {
+    qt.insert(d.val(xCol, valsLabel) - w, d.val(yCol, valsLabel) - h, w, h, d);
+  });
+
+  this._quadTree = qt;
+
+  // TODO: Aici. De fapt, ar trebui sa cream un arbore de fiecare data cand facem redraw, si sa folosim width and height of visualization
+};
+

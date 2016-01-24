@@ -33,7 +33,8 @@ vs.ui.plugins.svg.ScatterPlot.Settings = u.extend({}, vs.ui.VisHandler.Settings,
   'yBoundaries': vs.ui.Setting.PredefinedSettings['yBoundaries'],
   'xScale': vs.ui.Setting.PredefinedSettings['xScale'],
   'yScale': vs.ui.Setting.PredefinedSettings['yScale'],
-  'cols': vs.ui.Setting.PredefinedSettings['cols']
+  'cols': vs.ui.Setting.PredefinedSettings['cols'],
+  'itemRatio': new vs.ui.Setting({'key':'itemRatio', 'type':vs.ui.Setting.Type.NUMBER, 'defaultValue': 0.01, 'label':'item ratio', 'template':'_number.html'})
 });
 
 Object.defineProperties(vs.ui.plugins.svg.ScatterPlot.prototype, {
@@ -58,6 +59,11 @@ vs.ui.plugins.svg.ScatterPlot.prototype.endDraw = function() {
     var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
     var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
     var valsLabel = /** @type {string} */ (self.optionValue('vals'));
+    var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
+    var width = /** @type {number} */ (self.optionValue('width'));
+    var height = /** @type {number} */ (self.optionValue('height'));
+
+    var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
 
     var xCol = cols[0];
     var yCol = cols[1];
@@ -80,7 +86,7 @@ vs.ui.plugins.svg.ScatterPlot.prototype.endDraw = function() {
       .attr('class', 'vs-item');
 
     selection
-      .attr('r', 3)
+      .attr('r', itemRadius)
       .attr('cx', function(d) { return xScale(d.val(xCol, valsLabel)); })
       .attr('cy', function(d) { return yScale(d.val(yCol, valsLabel)); })
       .attr('fill', '#ff6520');

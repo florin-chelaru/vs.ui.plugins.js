@@ -8,3 +8,4 @@ goog.require('vs.ui.plugins.canvas.ScatterPlot');
 
 goog.exportSymbol('vs.ui.plugins.canvas.ScatterPlot', vs.ui.plugins.canvas.ScatterPlot);
 goog.exportProperty(vs.ui.plugins.canvas.ScatterPlot.prototype, 'endDraw', vs.ui.plugins.canvas.ScatterPlot.prototype.endDraw);
+goog.exportProperty(vs.ui.plugins.canvas.ScatterPlot.prototype, 'getItemsAt', vs.ui.plugins.canvas.ScatterPlot.prototype.getItemsAt);
