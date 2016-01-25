@@ -28,7 +28,7 @@ vs.ui.plugins.canvas.ScatterPlot = function() {
    */
   this._quadTree = null;
 
-  this.data.changed.addListener(this._updateQuadTree, this);
+  //this.data.changed.addListener(this._updateQuadTree, this);
 };
 
 goog.inherits(vs.ui.plugins.canvas.ScatterPlot, vs.ui.canvas.CanvasVis);
@@ -43,12 +43,63 @@ vs.ui.plugins.canvas.ScatterPlot.Settings = u.extend({}, vs.ui.canvas.CanvasVis.
   'xScale': vs.ui.Setting.PredefinedSettings['xScale'],
   'yScale': vs.ui.Setting.PredefinedSettings['yScale'],
   'cols': vs.ui.Setting.PredefinedSettings['cols'],
-  'itemRatio': new vs.ui.Setting({'key':'itemRatio', 'type':vs.ui.Setting.Type.NUMBER, 'defaultValue': 0.02, 'label':'item ratio', 'template':'_number.html'})
+  'itemRatio': new vs.ui.Setting({'key':'itemRatio', 'type':vs.ui.Setting.Type.NUMBER, 'defaultValue': 0.015, 'label':'item ratio', 'template':'_number.html'})
 });
 
 Object.defineProperties(vs.ui.plugins.canvas.ScatterPlot.prototype, {
   'settings': { get: /** @type {function (this:vs.ui.plugins.canvas.ScatterPlot)} */ (function() { return vs.ui.plugins.canvas.ScatterPlot.Settings; })}
 });
+
+vs.ui.plugins.canvas.ScatterPlot.prototype.beginDraw = function() {
+  var self = this;
+  var args = arguments;
+  return new Promise(function(resolve, reject) {
+    vs.ui.canvas.CanvasVis.prototype.beginDraw.apply(self, args).then(function() {
+      /** @type {vs.models.DataSource} */
+      var data = self.data;
+      if (!self.data.isReady) { resolve(); return; }
+
+      // Nothing to draw
+      if (!data.nrows) { resolve(); return; }
+
+      var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
+      var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
+      var valsLabel = /** @type {string} */ (self.optionValue('vals'));
+      var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
+      var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
+      var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
+
+      var width = /** @type {number} */ (self.optionValue('width'));
+      var height = /** @type {number} */ (self.optionValue('height'));
+
+      var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
+
+      var xCol = cols[0];
+      var yCol = cols[1];
+
+      var qt = new u.QuadTree(margins.left, margins.top, width - margins.left - margins.right, height - margins.top - margins.bottom, itemRatio, 10);
+
+      var transform =
+        vs.models.Transformer
+          .scale(xScale, yScale)
+          .translate({x: margins.left, y: margins.top});
+      var items = self.data.asDataRowArray();
+      var w, h;
+      w = h = itemRadius;
+
+      items.forEach(function(d) {
+        var initialPoint = {x: d.val(xCol, valsLabel), y: d.val(yCol, valsLabel)};
+        var point = transform.calc(initialPoint);
+
+        qt.insert(point.x - w, point.y - h, w * 2, h * 2, d);
+      });
+
+      self._quadTree = qt;
+
+      resolve();
+    });
+  });
+};
 
 vs.ui.plugins.canvas.ScatterPlot.prototype.endDraw = function() {
   var self = this;
@@ -97,7 +148,7 @@ vs.ui.plugins.canvas.ScatterPlot.prototype.endDraw = function() {
       return new Promise(function(drawCircleResolve, drawCircleReject) {
         setTimeout(function() {
           var point = transform.calc({x: d.val(xCol, valsLabel), y: d.val(yCol, valsLabel)});
-          vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, '#ff6520');
+          vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, 'rgba(255,101,32,0.3)');
           drawCircleResolve();
         }, 0);
       });
@@ -113,6 +164,24 @@ vs.ui.plugins.canvas.ScatterPlot.prototype.endDraw = function() {
  * @returns {Array.<vs.models.DataRow>}
  */
 vs.ui.plugins.canvas.ScatterPlot.prototype.getItemsAt = function(x, y) {
+  if (!this._quadTree) { return []; }
+
+  return this._quadTree.collisions(x, y).map(function(v) { return v.value; });
+
+  /*var cols = /!** @type {Array.<string>} *!/ (this.optionValue('cols'));
+  var valsLabel = /!** @type {string} *!/ (this.optionValue('vals'));
+  var xCol = cols[0];
+  var yCol = cols[1];
+  console.log(JSON.stringify(ret.map(function(d) { return {x: d.val(xCol, valsLabel), y: d.val(yCol, valsLabel)}; })));*/
+
+  //return ret;
+};
+
+/**
+ * @param {jQuery} canvas
+ * @param {vs.models.DataRow} d
+ */
+vs.ui.plugins.canvas.ScatterPlot.prototype.drawHighlightItem = function(canvas, d) {
   var margins = /** @type {vs.models.Margins} */ (this.optionValue('margins'));
   var xScale = /** @type {function(number): number} */ (this.optionValue('xScale'));
   var yScale = /** @type {function(number): number} */ (this.optionValue('yScale'));
@@ -121,45 +190,18 @@ vs.ui.plugins.canvas.ScatterPlot.prototype.getItemsAt = function(x, y) {
   var itemRatio = /** @type {number} */ (this.optionValue('itemRatio'));
   var width = /** @type {number} */ (this.optionValue('width'));
   var height = /** @type {number} */ (this.optionValue('height'));
-  var xBoundaries = /** @type {vs.models.Boundaries} */ (this.optionValue('xBoundaries'));
-  var yBoundaries = /** @type {vs.models.Boundaries} */ (this.optionValue('yBoundaries'));
-  var xCol = cols[0];
-  var yCol = cols[1];
 
+  var transform =
+    vs.models.Transformer
+      .scale(xScale, yScale)
+      .translate({x: margins.left, y: margins.top});
 
-  if (!this._quadTree) { return []; }
-  var xval = (x - margins.left) * (xBoundaries.max - xBoundaries.min) / (width - margins.left - margins.right);
-  var yval = (height - y - margins.bottom) * (yBoundaries.max - yBoundaries.min) / (height - margins.top - margins.bottom);
-
-  console.log(x, y, xval, yval);
-
-  var ret = this._quadTree.collisions(xval, yval).map(function(v) { return v.value; });
-  console.log(JSON.stringify(ret.map(function(d) { return {x: d.val(xCol, valsLabel), y: d.val(yCol, valsLabel)}; })));
-
-  return ret;
-};
-
-vs.ui.plugins.canvas.ScatterPlot.prototype._updateQuadTree = function() {
-  var cols = /** @type {Array.<string>} */ (this.optionValue('cols'));
-  var valsLabel = /** @type {string} */ (this.optionValue('vals'));
-  var xBoundaries = /** @type {vs.models.Boundaries} */ (this.optionValue('xBoundaries'));
-  var yBoundaries = /** @type {vs.models.Boundaries} */ (this.optionValue('yBoundaries'));
-  var itemRatio = /** @type {number} */ (this.optionValue('itemRatio'));
+  var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
 
   var xCol = cols[0];
   var yCol = cols[1];
+  var point = transform.calc({x: d.val(xCol, valsLabel), y: d.val(yCol, valsLabel)});
 
-  var qt = new u.QuadTree(xBoundaries.min, yBoundaries.min, xBoundaries.max - xBoundaries.min, yBoundaries.max - yBoundaries.min, itemRatio, 10);
-
-  var items = this.data.asDataRowArray();
-  var w = 2 * itemRatio * (xBoundaries.max - xBoundaries.min);
-  var h = 2 * itemRatio * (yBoundaries.max - yBoundaries.min);
-  items.forEach(function(d) {
-    qt.insert(d.val(xCol, valsLabel) - w, d.val(yCol, valsLabel) - h, w, h, d);
-  });
-
-  this._quadTree = qt;
-
-  // TODO: Aici. De fapt, ar trebui sa cream un arbore de fiecare data cand facem redraw, si sa folosim width and height of visualization
+  var context = canvas[0].getContext('2d');
+  vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, '#ff6520', '#ffc600', 4);
 };
-

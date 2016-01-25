@@ -34,7 +34,7 @@ vs.ui.plugins.svg.ScatterPlot.Settings = u.extend({}, vs.ui.VisHandler.Settings,
   'xScale': vs.ui.Setting.PredefinedSettings['xScale'],
   'yScale': vs.ui.Setting.PredefinedSettings['yScale'],
   'cols': vs.ui.Setting.PredefinedSettings['cols'],
-  'itemRatio': new vs.ui.Setting({'key':'itemRatio', 'type':vs.ui.Setting.Type.NUMBER, 'defaultValue': 0.01, 'label':'item ratio', 'template':'_number.html'})
+  'itemRatio': new vs.ui.Setting({'key':'itemRatio', 'type':vs.ui.Setting.Type.NUMBER, 'defaultValue': 0.015, 'label':'item ratio', 'template':'_number.html'})
 });
 
 Object.defineProperties(vs.ui.plugins.svg.ScatterPlot.prototype, {
@@ -89,7 +89,8 @@ vs.ui.plugins.svg.ScatterPlot.prototype.endDraw = function() {
       .attr('r', itemRadius)
       .attr('cx', function(d) { return xScale(d.val(xCol, valsLabel)); })
       .attr('cy', function(d) { return yScale(d.val(yCol, valsLabel)); })
-      .attr('fill', '#ff6520');
+      .attr('fill', '#ff6520')
+      .style('fill-opacity', 0.3);
 
     selection.exit()
       .remove();
