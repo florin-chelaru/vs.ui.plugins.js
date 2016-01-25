@@ -1349,7 +1349,17 @@ vs.ui.canvas.CanvasBrushing = function($ng, $targetElement, target, options) {};
 /**
  * @returns {Promise}
  */
+vs.ui.canvas.CanvasBrushing.prototype.beginDraw = function() {};
+
+/**
+ * @returns {Promise}
+ */
 vs.ui.canvas.CanvasBrushing.prototype.endDraw = function() {};
+
+/**
+ * @param {vs.ui.BrushingEvent} e
+ */
+vs.ui.canvas.CanvasBrushing.prototype.brush = function(e) {};
 
 /**
  * @param {angular.Scope} $scope
@@ -1505,7 +1515,18 @@ vs.ui.canvas.CanvasVis.prototype.activeCanvas;
  */
 vs.ui.canvas.CanvasVis.prototype.doubleBuffer;
 
-vs.ui.canvas.CanvasVis.prototype.finalizeDraw = function() {};
+/**
+ * @param {number} x
+ * @param {number} y
+ * @returns {Array.<vs.models.DataRow>}
+ */
+vs.ui.canvas.CanvasVis.prototype.getItemsAt = function(x, y) { return []; };
+
+/**
+ * @param {jQuery} canvas
+ * @param {vs.models.DataRow} d
+ */
+vs.ui.canvas.CanvasVis.prototype.drawHighlightItem = function(canvas, d) {};
 
 /**
  * @param {CanvasRenderingContext2D} context
@@ -1514,5 +1535,6 @@ vs.ui.canvas.CanvasVis.prototype.finalizeDraw = function() {};
  * @param {number} r
  * @param {string} [fill]
  * @param {string} [stroke]
+ * @param {number} [strokeWidth]
  */
-vs.ui.canvas.CanvasVis.circle = function(context, cx, cy, r, fill, stroke) {};
+vs.ui.canvas.CanvasVis.circle = function(context, cx, cy, r, fill, stroke, strokeWidth) {};

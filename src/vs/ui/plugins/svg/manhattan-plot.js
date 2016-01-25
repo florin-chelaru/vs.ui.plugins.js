@@ -34,7 +34,14 @@ vs.ui.plugins.svg.ManhattanPlot.Settings = u.extend({}, vs.ui.VisHandler.Setting
   'yBoundaries': vs.ui.Setting.PredefinedSettings['yBoundaries'],
   'xScale': vs.ui.Setting.PredefinedSettings['xScale'],
   'yScale': vs.ui.Setting.PredefinedSettings['yScale'],
-  'cols': vs.ui.Setting.PredefinedSettings['cols']
+  'cols': vs.ui.Setting.PredefinedSettings['cols'],
+  'itemRatio': new vs.ui.Setting({'key':'itemRatio', 'type':vs.ui.Setting.Type.NUMBER, 'defaultValue': 0.015, 'label':'item ratio', 'template':'_number.html'}),
+  'fill': vs.ui.Setting.PredefinedSettings['fill'],
+  'stroke': vs.ui.Setting.PredefinedSettings['stroke'],
+  'strokeThickness': vs.ui.Setting.PredefinedSettings['strokeThickness'],
+  'selectFill': vs.ui.Setting.PredefinedSettings['selectFill'],
+  'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
+  'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness']
 });
 
 Object.defineProperties(vs.ui.plugins.svg.ManhattanPlot.prototype, {
@@ -60,7 +67,13 @@ vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw = function() {
     var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
     var row = (/** @type {Array.<string>} */ (self.optionValue('rows')))[0];
     var valsLabel = /** @type {string} */ (self.optionValue('vals'));
-
+    var fill = /** @type {string} */ (self.optionValue('fill'));
+    var stroke = /** @type {string} */ (self.optionValue('stroke'));
+    var strokeThickness = /** @type {number} */ (self.optionValue('strokeThickness'));
+    var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
+    var width = /** @type {number} */ (self.optionValue('width'));
+    var height = /** @type {number} */ (self.optionValue('height'));
+    var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
     var svg = d3.select(self.$element[0]).select('svg');
 
     var viewport = svg.select('.viewport');
@@ -79,10 +92,12 @@ vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw = function() {
       .attr('class', 'vs-item');
 
     selection
-      .attr('r', 3)
+      .attr('r', itemRadius)
       .attr('cx', function(d) { return xScale(parseFloat(d.info(row))); })
       .attr('cy', function(d) { return yScale(d.val(cols[0], valsLabel)); })
-      .attr('fill', '#1e60d4');
+      .attr('fill', fill)
+      .style('stroke', stroke)
+      .style('stroke-width', strokeThickness);
 
     selection.exit()
       .remove();
