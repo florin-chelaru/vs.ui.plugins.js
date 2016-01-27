@@ -96,6 +96,7 @@ vs.ui.plugins.svg.Heatmap.prototype.endDraw = function() {
       .attr('class', 'vs-item');
 
     selection
+      .attr('transform', function(d, i) { return 'translate(0,' + yScale(i) + ')'; })
       .each(function(d, i) {
         var cells = d3.select(this).selectAll('rect').data(cols);
         cells
@@ -104,7 +105,8 @@ vs.ui.plugins.svg.Heatmap.prototype.endDraw = function() {
           .attr('class', 'vs-cell');
         cells
           .attr('x', function(col, j) { return xScale(j); })
-          .attr('y', yScale(i))
+          //.attr('y', yScale(i))
+          .attr('y', 0)
           .attr('width', xScale(1))
           .attr('height', yScale(1))
           .attr('fill', function(col) { return colorScale(d.val(col, valsLabel)); });
@@ -135,10 +137,19 @@ vs.ui.plugins.svg.Heatmap.prototype.highlightItem = function(viewport, d) {
   var width = /** @type {number} */ (this.optionValue('width'));
   var height = /** @type {number} */ (this.optionValue('height'));
 
+  var yScale = d3.scale.linear()
+    .domain([0, d.data.nrows])
+    .range([0, height - margins.top - margins.bottom]);
+
   var colorScale = d3.scale.linear()
     .domain([yBoundaries.min, yBoundaries.max])
     .range(['#ffffff', selectFill]);
   var itemHeight = (height - margins.top - margins.bottom) / d.data.nrows;
+
+  var minHeight = Math.max(itemHeight, 25); // a selected row will increase size to this height if necessary
+  var heightScale = minHeight / itemHeight;
+  var dif = minHeight - itemHeight;
+
   var items = v.selectAll('.vs-item').data([d], vs.models.DataSource.key);
   items
     .each(function() {
@@ -149,12 +160,16 @@ vs.ui.plugins.svg.Heatmap.prototype.highlightItem = function(viewport, d) {
   v.append('rect')
     .attr('class', 'vs-item-border')
     .attr('x', -selectStrokeThickness)
-    .attr('y', d.index * itemHeight - selectStrokeThickness)
+    .attr('y', d.index * itemHeight - selectStrokeThickness - 0.5 * dif)
     .attr('width', width - margins.left - margins.right + 2 * selectStrokeThickness)
-    .attr('height', itemHeight + 2 * selectStrokeThickness)
+    .attr('height', dif + itemHeight + 2 * selectStrokeThickness)
     .style('stroke', selectStroke)
     .style('stroke-width', selectStrokeThickness)
     .style('fill', 'none');
+  items
+    .attr('transform', function(d, i) {
+      return 'translate(0, ' + (yScale(d.index) - dif * 0.5) + ') scale(1, ' + heightScale + ')';
+    });
   $(items[0]).appendTo($(viewport));
 };
 
@@ -167,6 +182,12 @@ vs.ui.plugins.svg.Heatmap.prototype.unhighlightItem = function(viewport, d) {
   var fill = /** @type {string} */ (this.optionValue('fill'));
   var yBoundaries = /** @type {vs.models.Boundaries} */ (this.optionValue('yBoundaries'));
   var valsLabel = /** @type {string} */ (this.optionValue('vals'));
+  var margins = /** @type {vs.models.Margins} */ (this.optionValue('margins'));
+  var width = /** @type {number} */ (this.optionValue('width'));
+  var height = /** @type {number} */ (this.optionValue('height'));
+  var yScale = d3.scale.linear()
+    .domain([0, d.data.nrows])
+    .range([0, height - margins.top - margins.bottom]);
   var colorScale = d3.scale.linear()
     .domain([yBoundaries.min, yBoundaries.max])
     .range(['#ffffff', fill]);
@@ -175,6 +196,7 @@ vs.ui.plugins.svg.Heatmap.prototype.unhighlightItem = function(viewport, d) {
       var item = d3.select(this);
       item.selectAll('.vs-cell')
         .attr('fill', function(col) { return colorScale(d.val(col, valsLabel)); });
-    });
+    })
+    .attr('transform', function(d, i) { return 'translate(0,' + yScale(d.index) + ')'; });
   v.selectAll('.vs-item-border').remove();
 };
