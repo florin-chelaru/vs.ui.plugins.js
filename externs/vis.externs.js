@@ -794,6 +794,18 @@ vs.ui.VisHandler.prototype.draw = function() {};
 vs.ui.VisHandler.prototype.scheduleRedraw = function() {};
 
 /**
+ * @param {HTMLElement} viewport Can be canvas, svg, etc.
+ * @param {vs.models.DataRow} d
+ */
+vs.ui.VisHandler.prototype.highlightItem = function(viewport, d) {};
+
+/**
+ * @param {HTMLElement} viewport Can be canvas, svg, etc.
+ * @param {vs.models.DataRow} d
+ */
+vs.ui.VisHandler.prototype.unhighlightItem = function(viewport, d) {};
+
+/**
  * @param {angular.Scope} $scope Angular scope
  * @constructor
  */
@@ -1521,12 +1533,6 @@ vs.ui.canvas.CanvasVis.prototype.doubleBuffer;
  * @returns {Array.<vs.models.DataRow>}
  */
 vs.ui.canvas.CanvasVis.prototype.getItemsAt = function(x, y) { return []; };
-
-/**
- * @param {jQuery} canvas
- * @param {vs.models.DataRow} d
- */
-vs.ui.canvas.CanvasVis.prototype.drawHighlightItem = function(canvas, d) {};
 
 /**
  * @param {CanvasRenderingContext2D} context

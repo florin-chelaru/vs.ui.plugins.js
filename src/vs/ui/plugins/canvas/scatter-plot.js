@@ -183,10 +183,10 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
   };
 
   /**
-   * @param {jQuery} canvas
+   * @param {HTMLElement} canvas
    * @param {vs.models.DataRow} d
    */
-  ScatterPlot.prototype.drawHighlightItem = function(canvas, d) {
+  ScatterPlot.prototype.highlightItem = function(canvas, d) {
     var margins = /** @type {vs.models.Margins} */ (this.optionValue('margins'));
     var xScale = /** @type {function(number): number} */ (this.optionValue('xScale'));
     var yScale = /** @type {function(number): number} */ (this.optionValue('yScale'));
@@ -211,7 +211,7 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
     var yCol = cols[1];
     var point = transform.calc({x: d.val(xCol, valsLabel), y: d.val(yCol, valsLabel)});
 
-    var context = canvas[0].getContext('2d');
+    var context = canvas.getContext('2d');
     vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, selectFill, selectStroke, selectStrokeThickness);
   };
 

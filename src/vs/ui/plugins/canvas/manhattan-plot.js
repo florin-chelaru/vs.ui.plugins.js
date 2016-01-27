@@ -179,10 +179,10 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
   };
 
   /**
-   * @param {jQuery} canvas
+   * @param {HTMLElement} canvas
    * @param {vs.models.DataRow} d
    */
-  ManhattanPlot.prototype.drawHighlightItem = function(canvas, d) {
+  ManhattanPlot.prototype.highlightItem = function(canvas, d) {
     var self = this;
     var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
     var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
@@ -206,7 +206,7 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
 
     var point = transform.calc({x: parseFloat(d.info(row)), y: d.val(cols[0], valsLabel)});
 
-    var context = canvas[0].getContext('2d');
+    var context = canvas.getContext('2d');
     vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, selectFill, selectStroke, selectStrokeThickness);
   };
 

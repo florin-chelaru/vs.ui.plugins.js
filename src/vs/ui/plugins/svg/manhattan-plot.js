@@ -107,3 +107,35 @@ vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw = function() {
     return vs.ui.svg.SvgVis.prototype.endDraw.apply(self, args);
   });
 };
+
+/**
+ * @param {HTMLElement} viewport Can be canvas, svg, etc.
+ * @param {vs.models.DataRow} d
+ */
+vs.ui.plugins.svg.ManhattanPlot.prototype.highlightItem = function(viewport, d) {
+  var v = d3.select(viewport);
+  var selectFill = /** @type {string} */ (this.optionValue('selectFill'));
+  var selectStroke = /** @type {string} */ (this.optionValue('selectStroke'));
+  var selectStrokeThickness = /** @type {number} */ (this.optionValue('selectStrokeThickness'));
+  var items = v.selectAll('.vs-item').data([d], vs.models.DataSource.key);
+  items
+    .style('stroke', selectStroke)
+    .style('stroke-width', selectStrokeThickness)
+    .style('fill', selectFill);
+  $(items[0]).appendTo($(viewport));
+};
+
+/**
+ * @param {HTMLElement} viewport Can be canvas, svg, etc.
+ * @param {vs.models.DataRow} d
+ */
+vs.ui.plugins.svg.ManhattanPlot.prototype.unhighlightItem = function(viewport, d) {
+  var v = d3.select(viewport);
+  var fill = /** @type {string} */ (this.optionValue('fill'));
+  var stroke = /** @type {string} */ (this.optionValue('stroke'));
+  var strokeThickness = /** @type {number} */ (this.optionValue('strokeThickness'));
+  v.selectAll('.vs-item').data([d], vs.models.DataSource.key)
+    .style('stroke', stroke)
+    .style('stroke-width', strokeThickness)
+    .style('fill', fill);
+};

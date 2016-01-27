@@ -8,3 +8,5 @@ goog.require('vs.ui.plugins.svg.ManhattanPlot');
 
 goog.exportSymbol('vs.ui.plugins.svg.ManhattanPlot', vs.ui.plugins.svg.ManhattanPlot);
 goog.exportProperty(vs.ui.plugins.svg.ManhattanPlot.prototype, 'endDraw', vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw);
+goog.exportProperty(vs.ui.plugins.svg.ManhattanPlot.prototype, 'highlightItem', vs.ui.plugins.svg.ManhattanPlot.prototype.highlightItem);
+goog.exportProperty(vs.ui.plugins.svg.ManhattanPlot.prototype, 'unhighlightItem', vs.ui.plugins.svg.ManhattanPlot.prototype.unhighlightItem);

@@ -8,3 +8,5 @@ goog.require('vs.ui.plugins.svg.ScatterPlot');
 
 goog.exportSymbol('vs.ui.plugins.svg.ScatterPlot', vs.ui.plugins.svg.ScatterPlot);
 goog.exportProperty(vs.ui.plugins.svg.ScatterPlot.prototype, 'endDraw', vs.ui.plugins.svg.ScatterPlot.prototype.endDraw);
+goog.exportProperty(vs.ui.plugins.svg.ScatterPlot.prototype, 'highlightItem', vs.ui.plugins.svg.ScatterPlot.prototype.highlightItem);
+goog.exportProperty(vs.ui.plugins.svg.ScatterPlot.prototype, 'unhighlightItem', vs.ui.plugins.svg.ScatterPlot.prototype.unhighlightItem);
