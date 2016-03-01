@@ -133,6 +133,7 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
             .each(function(d, i) {
                 var row = i;
                 var cells = d3.select(this).selectAll('rect').data(cols);
+                console.log(cells);
                 /*.data(function (d) {
                         d.reverse();
                         console.log(d);
@@ -148,6 +149,7 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
                     .attr('y', 0)
                     .attr('width', xScale(1))
                     .attr('height', yScale(1))
+                    .attr('fill', "blue")
                     .attr('fill', function(d) { return color(d.val(col, valsLabel)); });
             });
 
