@@ -90,10 +90,10 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
             viewport = svg.append('g')
                 .attr('class', 'viewport');
         }
+        viewport
+            .attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
 
         var labels = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"];
-
-        //var items = data.asDataRowArray();
 
         var sideLength = 30;
         //var data = dataArray["vals"][0]["d"];
@@ -129,7 +129,7 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
             .each(function(d, i) {
                 var row = i;
                 var cells = d3.select(this).selectAll('rect')
-                    .data(items);
+                    .data(cols);
                 /*.data(function (d) {
                         d.reverse();
                         console.log(d);
