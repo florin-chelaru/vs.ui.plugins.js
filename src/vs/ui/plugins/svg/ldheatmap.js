@@ -42,18 +42,14 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
             .style('stroke','#000000')
             .style('stroke-width',5);*/
 
-
         var labels = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"];
 
-        var width = 900;
-        var height = 700;
         var sideLength = 30;
         var dataSize = Math.sqrt(data.length);
 
         var color = d3.scale.linear()
             .domain([0, 1])
             .range(["white", "darkblue"]);
-
 
         var getData = function (d) {
             var usableData = [];
@@ -70,8 +66,6 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
             return usableData;
         };
 
-
-
         var rects = viewport.selectAll("g")
             .data(getData(data))
             .enter()
@@ -82,7 +76,9 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
                     .selectAll("rect")
                     .data(function (d) {
                         d.reverse();
+                        console.log(d);
                         return d.slice(0, dataSize - row);
+
                     })
                     .enter()
                     .append("rect")
@@ -99,6 +95,8 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
                     });
             });
 
+
+        /*
         var rowSelector = viewport.append("rect")
             .attr("x", 0)
             .attr("id", "row")
@@ -149,7 +147,7 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
                     .style("stroke", "none");
             }
         });
-
+*/
         var key = viewport.selectAll("text")
             .data(labels)
             .enter()
@@ -164,10 +162,10 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
                 return d;
             });
 
-        viewport
+        /*viewport
             .attr("transform", "translate(" + sideLength / 3 * 2 + "," + 6 * sideLength
                 + ")rotate(45," + dataSize * sideLength + "," + dataSize / 2 * sideLength + ")");
-
+*/
         resolve();
     }).then(function() {
         return vs.ui.svg.SvgVis.prototype.endDraw.apply(self, args);
