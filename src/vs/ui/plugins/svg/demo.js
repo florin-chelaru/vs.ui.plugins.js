@@ -11,6 +11,16 @@ if(COMPILED){
 
 vs.ui.plugins.svg.Demo = function(){
     vs.ui.svg.SvgVis.apply(this, arguments);
+    /**
+   * @type {number}
+   */
+  this['publicField'] = 20;
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this._privateField = 10;
 };
 
 goog.inherits(vs.ui.plugins.svg.Demo, vs.ui.svg.SvgVis);
