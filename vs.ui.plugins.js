@@ -414,16 +414,16 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
                 .attr('class', 'viewport');
         }
 
-        /*viewport.append('circle')
+        viewport.append('circle')
             .attr('cx',50)
             .attr('cy',50)
             .attr('r',20)
             .attr('fill','#fe5621')
             .style('stroke','#000000')
-            .style('stroke-width',5);*/
+            .style('stroke-width',5);
 
 
-        var labels = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"];
+        /*var labels = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"];
 
         var width = 900;
         var height = 700;
@@ -448,7 +448,7 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
             return usableData;
         };*/
 
-        var rects = viewport.selectAll("g")
+        /*var rects = viewport.selectAll("g")
             .data(data.asDataRowArray())
             .enter()
             .append("g")
@@ -543,7 +543,7 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
         viewport
             .attr("transform", "translate(" + sideLength / 3 * 2 + "," + 6 * sideLength
                 + ")rotate(45," + dataSize * sideLength + "," + dataSize / 2 * sideLength + ")");
-
+*/
         resolve();
     }).then(function() {
         return vs.ui.svg.SvgVis.prototype.endDraw.apply(self, args);
