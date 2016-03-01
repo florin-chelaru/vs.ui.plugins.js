@@ -435,21 +435,25 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
             .range(["white", "darkblue"]);
 
 
-       /* var getData = function (d) {
+        var getData = function (d) {
             var usableData = [];
             var currentList = [];
-            for (j = 0; j < 100; j++) {
-                currentList.push(d[j]);
-                if (j % 10 == 9) {
+            var i=0;
+            while (i<100) {
+                currentList.push(d[i]);
+                if (i % 10 == 9) {
                     usableData.push(currentList);
                     currentList = [];
                 }
+                i=i+1;
             }
             return usableData;
-        };*/
+        };
+
+
 
         var rects = viewport.selectAll("g")
-            .data(data.asDataRowArray())
+            .data(getData(data))
             .enter()
             .append("g")
             .each(function (d, i) {
