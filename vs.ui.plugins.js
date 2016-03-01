@@ -35,419 +35,6 @@ if (COMPILED) {
 
 
 
-goog.provide('vs.ui.plugins.svg.Heatmap');
-
-if (COMPILED) {
-  goog.require('vs.ui');
-}
-
-/**
- * @constructor
- * @extends vs.ui.svg.SvgVis
- */
-vs.ui.plugins.svg.Heatmap = function() {
-  vs.ui.svg.SvgVis.apply(this, arguments);
-};
-
-goog.inherits(vs.ui.plugins.svg.Heatmap, vs.ui.svg.SvgVis);
-
-/**
- * @type {Object.<string, vs.ui.Setting>}
- */
-vs.ui.plugins.svg.Heatmap.Settings = u.extend({}, vs.ui.VisHandler.Settings, {
-  'vals': vs.ui.Setting.PredefinedSettings['vals'],
-  'xBoundaries': vs.ui.Setting.PredefinedSettings['xBoundaries'],
-  'yBoundaries': vs.ui.Setting.PredefinedSettings['yBoundaries'],
-  //'xScale': vs.ui.Setting.PredefinedSettings['xScale'],
-  //'yScale': vs.ui.Setting.PredefinedSettings['yScale'],
-  'cols': vs.ui.Setting.PredefinedSettings['cols'],
-  //'itemRatio': new vs.ui.Setting({'key':'itemRatio', 'type':vs.ui.Setting.Type.NUMBER, 'defaultValue': 0.015, 'label':'item ratio', 'template':'_number.html'}),
-  'fill': vs.ui.Setting.PredefinedSettings['fill'],
-  'stroke': vs.ui.Setting.PredefinedSettings['stroke'],
-  'strokeThickness': vs.ui.Setting.PredefinedSettings['strokeThickness'],
-  'selectFill': vs.ui.Setting.PredefinedSettings['selectFill'],
-  'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
-  'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness']
-});
-
-Object.defineProperties(vs.ui.plugins.svg.Heatmap.prototype, {
-  'settings': { get: /** @type {function (this:vs.ui.plugins.svg.Heatmap)} */ (function() { return vs.ui.plugins.svg.Heatmap.Settings; })}
-});
-
-/**
- * @override
- */
-vs.ui.plugins.svg.Heatmap.prototype.endDraw = function() {
-  var self = this;
-  var args = arguments;
-  return new Promise(function(resolve, reject) {
-    /** @type {vs.models.DataSource} */
-    var data = self.data;
-
-    // Nothing to draw
-    if (!data.nrows) { resolve(); return; }
-
-    var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
-    var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
-    var valsLabel = /** @type {string} */ (self.optionValue('vals'));
-    var width = /** @type {number} */ (self.optionValue('width'));
-    var height = /** @type {number} */ (self.optionValue('height'));
-    var yBoundaries = /** @type {vs.models.Boundaries} */ (self.optionValue('yBoundaries'));
-    var fill = /** @type {string} */ (self.optionValue('fill'));
-    var stroke = /** @type {string} */ (self.optionValue('stroke'));
-    var strokeThickness = /** @type {number} */ (self.optionValue('strokeThickness'));
-
-    var xScale = d3.scale.linear()
-      .domain([0, cols.length])
-      .range([0, width - margins.left - margins.right]);
-
-    var yScale = d3.scale.linear()
-      .domain([0, data.nrows])
-      .range([0, height - margins.top - margins.bottom]);
-
-    var colorScale = d3.scale.linear()
-      .domain([yBoundaries.min, yBoundaries.max])
-      .range(['#ffffff', fill]);
-
-    var svg = d3.select(self.$element[0]).select('svg');
-
-    var viewport = svg.select('.viewport');
-    if (viewport.empty()) {
-      viewport = svg.append('g')
-        .attr('class', 'viewport');
-    }
-    viewport
-      .attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
-
-    var items = data.asDataRowArray();
-    var selection = viewport.selectAll('g').data(items, vs.models.DataSource.key);
-
-    selection.enter()
-      .append('g')
-      .attr('class', 'vs-item');
-
-    selection
-      .attr('transform', function(d, i) { return 'translate(0,' + yScale(i) + ')'; })
-      .each(function(d, i) {
-        var cells = d3.select(this).selectAll('rect').data(cols);
-        cells
-          .enter()
-          .append('rect')
-          .attr('class', 'vs-cell');
-        cells
-          .attr('x', function(col, j) { return xScale(j); })
-          //.attr('y', yScale(i))
-          .attr('y', 0)
-          .attr('width', xScale(1))
-          .attr('height', yScale(1))
-          .attr('fill', function(col) { return colorScale(d.val(col, valsLabel)); });
-      });
-
-    selection.exit()
-      .remove();
-
-    resolve();
-  }).then(function() {
-    return vs.ui.svg.SvgVis.prototype.endDraw.apply(self, args);
-  });
-};
-
-/**
- * @param {HTMLElement} viewport Can be canvas, svg, etc.
- * @param {vs.models.DataRow} d
- */
-vs.ui.plugins.svg.Heatmap.prototype.highlightItem = function(viewport, d) {
-  var v = d3.select(viewport);
-  var selectFill = /** @type {string} */ (this.optionValue('selectFill'));
-  var selectStroke = /** @type {string} */ (this.optionValue('selectStroke'));
-  var selectStrokeThickness = /** @type {number} */ (this.optionValue('selectStrokeThickness'));
-  var valsLabel = /** @type {string} */ (this.optionValue('vals'));
-  var yBoundaries = /** @type {vs.models.Boundaries} */ (this.optionValue('yBoundaries'));
-
-  var margins = /** @type {vs.models.Margins} */ (this.optionValue('margins'));
-  var width = /** @type {number} */ (this.optionValue('width'));
-  var height = /** @type {number} */ (this.optionValue('height'));
-
-  var yScale = d3.scale.linear()
-    .domain([0, d.data.nrows])
-    .range([0, height - margins.top - margins.bottom]);
-
-  var colorScale = d3.scale.linear()
-    .domain([yBoundaries.min, yBoundaries.max])
-    .range(['#ffffff', selectFill]);
-  var itemHeight = (height - margins.top - margins.bottom) / d.data.nrows;
-
-  var minHeight = Math.max(itemHeight, 25); // a selected row will increase size to this height if necessary
-  var heightScale = minHeight / itemHeight;
-  var dif = minHeight - itemHeight;
-
-  var items = v.selectAll('.vs-item').data([d], vs.models.DataSource.key);
-  items
-    .each(function() {
-      var item = d3.select(this);
-      item.selectAll('.vs-cell')
-        .attr('fill', function(col) { return colorScale(d.val(col, valsLabel)); });
-    });
-  v.append('rect')
-    .attr('class', 'vs-item-border')
-    .attr('x', -selectStrokeThickness)
-    .attr('y', d.index * itemHeight - selectStrokeThickness - 0.5 * dif)
-    .attr('width', width - margins.left - margins.right + 2 * selectStrokeThickness)
-    .attr('height', dif + itemHeight + 2 * selectStrokeThickness)
-    .style('stroke', selectStroke)
-    .style('stroke-width', selectStrokeThickness)
-    .style('fill', 'none');
-  items
-    .attr('transform', function(d, i) {
-      return 'translate(0, ' + (yScale(d.index) - dif * 0.5) + ') scale(1, ' + heightScale + ')';
-    });
-  $(items[0]).appendTo($(viewport));
-};
-
-/**
- * @param {HTMLElement} viewport Can be canvas, svg, etc.
- * @param {vs.models.DataRow} d
- */
-vs.ui.plugins.svg.Heatmap.prototype.unhighlightItem = function(viewport, d) {
-  var v = d3.select(viewport);
-  var fill = /** @type {string} */ (this.optionValue('fill'));
-  var yBoundaries = /** @type {vs.models.Boundaries} */ (this.optionValue('yBoundaries'));
-  var valsLabel = /** @type {string} */ (this.optionValue('vals'));
-  var margins = /** @type {vs.models.Margins} */ (this.optionValue('margins'));
-  var width = /** @type {number} */ (this.optionValue('width'));
-  var height = /** @type {number} */ (this.optionValue('height'));
-  var yScale = d3.scale.linear()
-    .domain([0, d.data.nrows])
-    .range([0, height - margins.top - margins.bottom]);
-  var colorScale = d3.scale.linear()
-    .domain([yBoundaries.min, yBoundaries.max])
-    .range(['#ffffff', fill]);
-  v.selectAll('.vs-item').data([d], vs.models.DataSource.key)
-    .each(function() {
-      var item = d3.select(this);
-      item.selectAll('.vs-cell')
-        .attr('fill', function(col) { return colorScale(d.val(col, valsLabel)); });
-    })
-    .attr('transform', function(d, i) { return 'translate(0,' + yScale(d.index) + ')'; });
-  v.selectAll('.vs-item-border').remove();
-};
-
-
-goog.provide('vs.ui.plugins.canvas.ScatterPlot');
-
-if (COMPILED) {
-  goog.require('vs.ui');
-}
-
-// Because vs.models.DataSource is defined in another library (vis.js), there is no way for the Google Closure compiler
-// to know the names of the private variables of that class. Therefore, when overriding this class, we need to declare
-// private variables in a private scope (closure), using Symbols (ES6), so we don't accidentally replace existing
-// private members.
-
-/**
- * @constructor
- * @extends vs.ui.canvas.CanvasVis
- */
-vs.ui.plugins.canvas.ScatterPlot = (function() {
-  var _quadTree = Symbol('_quadTree');
-
-  /**
-   * @constructor
-   * @extends vs.ui.canvas.CanvasVis
-   */
-  var ScatterPlot = function() {
-    vs.ui.canvas.CanvasVis.apply(this, arguments);
-
-    /**
-     * @type {u.QuadTree}
-     * @private
-     */
-    this[_quadTree] = null;
-  };
-
-  goog.inherits(ScatterPlot, vs.ui.canvas.CanvasVis);
-
-  /**
-   * @type {Object.<string, vs.ui.Setting>}
-   */
-  ScatterPlot.Settings = u.extend({}, vs.ui.canvas.CanvasVis.Settings, {
-    'vals': vs.ui.Setting.PredefinedSettings['vals'],
-    'xBoundaries': vs.ui.Setting.PredefinedSettings['xBoundaries'],
-    'yBoundaries': vs.ui.Setting.PredefinedSettings['yBoundaries'],
-    'xScale': vs.ui.Setting.PredefinedSettings['xScale'],
-    'yScale': vs.ui.Setting.PredefinedSettings['yScale'],
-    'cols': vs.ui.Setting.PredefinedSettings['cols'],
-    'itemRatio': new vs.ui.Setting({'key':'itemRatio', 'type':vs.ui.Setting.Type.NUMBER, 'defaultValue': 0.015, 'label':'item ratio', 'template':'_number.html'}),
-    'fill': vs.ui.Setting.PredefinedSettings['fill'],
-    'stroke': vs.ui.Setting.PredefinedSettings['stroke'],
-    'strokeThickness': vs.ui.Setting.PredefinedSettings['strokeThickness'],
-    'selectFill': vs.ui.Setting.PredefinedSettings['selectFill'],
-    'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
-    'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness']
-  });
-
-  Object.defineProperties(ScatterPlot.prototype, {
-    'settings': { get: /** @type {function (this:ScatterPlot)} */ (function() { return ScatterPlot.Settings; })}
-  });
-
-  ScatterPlot.prototype.beginDraw = function() {
-    var self = this;
-    var args = arguments;
-    return new Promise(function(resolve, reject) {
-      vs.ui.canvas.CanvasVis.prototype.beginDraw.apply(self, args).then(function() {
-        /** @type {vs.models.DataSource} */
-        var data = self.data;
-        if (!self.data.isReady) { resolve(); return; }
-
-        // Nothing to draw
-        if (!data.nrows) { resolve(); return; }
-
-        var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
-        var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
-        var valsLabel = /** @type {string} */ (self.optionValue('vals'));
-        var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
-        var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
-        var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
-
-        var width = /** @type {number} */ (self.optionValue('width'));
-        var height = /** @type {number} */ (self.optionValue('height'));
-
-        var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
-
-        var xCol = cols[0];
-        var yCol = cols[1];
-
-        var qt = new u.QuadTree(margins.left, margins.top, width - margins.left - margins.right, height - margins.top - margins.bottom, itemRatio, 10);
-
-        var transform =
-          vs.models.Transformer
-            .scale(xScale, yScale)
-            .translate({x: margins.left, y: margins.top});
-        var items = self.data.asDataRowArray();
-        var w, h;
-        w = h = itemRadius;
-
-        items.forEach(function(d) {
-          var initialPoint = {x: d.val(xCol, valsLabel), y: d.val(yCol, valsLabel)};
-          var point = transform.calc(initialPoint);
-
-          qt.insert(point.x - w, point.y - h, w * 2, h * 2, d);
-        });
-
-        self[_quadTree] = qt;
-
-        resolve();
-      });
-    });
-  };
-
-  ScatterPlot.prototype.endDraw = function() {
-    var self = this;
-    var args = arguments;
-    return new Promise(function(resolve, reject) {
-      /** @type {vs.models.DataSource} */
-      var data = self.data;
-      if (!self.data.isReady) { resolve(); return; }
-
-      // Nothing to draw
-      if (!data.nrows) { resolve(); return; }
-
-      var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
-      var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
-      var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
-      var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
-      var valsLabel = /** @type {string} */ (self.optionValue('vals'));
-      var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
-      var width = /** @type {number} */ (self.optionValue('width'));
-      var height = /** @type {number} */ (self.optionValue('height'));
-
-      var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
-
-      var xCol = cols[0];
-      var yCol = cols[1];
-
-      var fill = /** @type {string} */ (self.optionValue('fill'));
-      var stroke = /** @type {string} */ (self.optionValue('stroke'));
-      var strokeThickness = /** @type {number} */ (self.optionValue('strokeThickness'));
-
-      var context = self.pendingCanvas[0].getContext('2d');
-
-      var transform =
-        vs.models.Transformer
-          .scale(xScale, yScale)
-          .translate({x: margins.left, y: margins.top});
-      var items = data.asDataRowArray();
-
-      // Instead of drawing all circles synchronously (and risk causing the browser to hang)...
-      /*items.forEach(function(d) {
-       var point = transform.calc({x: d.val(xCol, valsLabel), y: d.val(yCol, valsLabel)});
-       vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, 3, '#ff6520');
-       });
-       resolve();
-       */
-
-      // ... draw them asynchronously, which takes a bit longer, but keeps the UI responsive
-      u.async.each(items, function(d) {
-        return new Promise(function(drawCircleResolve, drawCircleReject) {
-          setTimeout(function() {
-            var point = transform.calc({x: d.val(xCol, valsLabel), y: d.val(yCol, valsLabel)});
-            vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, fill, stroke, strokeThickness);
-            drawCircleResolve();
-          }, 0);
-        });
-      }).then(resolve, reject);
-    }).then(function() {
-        return vs.ui.canvas.CanvasVis.prototype.endDraw.apply(self, args);
-      });
-  };
-
-  /**
-   * @param {number} x
-   * @param {number} y
-   * @returns {Array.<vs.models.DataRow>}
-   */
-  ScatterPlot.prototype.getItemsAt = function(x, y) {
-    if (!this[_quadTree]) { return []; }
-    return this[_quadTree].collisions(x, y).map(function(v) { return v.value; });
-  };
-
-  /**
-   * @param {HTMLElement} canvas
-   * @param {vs.models.DataRow} d
-   */
-  ScatterPlot.prototype.highlightItem = function(canvas, d) {
-    var margins = /** @type {vs.models.Margins} */ (this.optionValue('margins'));
-    var xScale = /** @type {function(number): number} */ (this.optionValue('xScale'));
-    var yScale = /** @type {function(number): number} */ (this.optionValue('yScale'));
-    var cols = /** @type {Array.<string>} */ (this.optionValue('cols'));
-    var valsLabel = /** @type {string} */ (this.optionValue('vals'));
-    var itemRatio = /** @type {number} */ (this.optionValue('itemRatio'));
-    var width = /** @type {number} */ (this.optionValue('width'));
-    var height = /** @type {number} */ (this.optionValue('height'));
-
-    var selectFill = /** @type {string} */ (this.optionValue('selectFill'));
-    var selectStroke = /** @type {string} */ (this.optionValue('selectStroke'));
-    var selectStrokeThickness = /** @type {number} */ (this.optionValue('selectStrokeThickness'));
-
-    var transform =
-      vs.models.Transformer
-        .scale(xScale, yScale)
-        .translate({x: margins.left, y: margins.top});
-
-    var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
-
-    var xCol = cols[0];
-    var yCol = cols[1];
-    var point = transform.calc({x: d.val(xCol, valsLabel), y: d.val(yCol, valsLabel)});
-
-    var context = canvas.getContext('2d');
-    vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, selectFill, selectStroke, selectStrokeThickness);
-  };
-
-  return ScatterPlot;
-})();
-
-
 goog.provide('vs.ui.plugins.canvas.ManhattanPlot');
 
 if (COMPILED) {
@@ -795,6 +382,590 @@ vs.ui.plugins.svg.ManhattanPlot.prototype.unhighlightItem = function(viewport, d
 };
 
 
+goog.provide('vs.ui.plugins.svg.LDHeatmap');
+
+if (COMPILED) {
+    goog.require('vs.ui');
+}
+
+vs.ui.plugins.svg.LDHeatmap = function() {
+    vs.ui.svg.SvgVis.apply(this, arguments);
+};
+
+goog.inherits(vs.ui.plugins.svg.LDHeatmap, vs.ui.svg.SvgVis);
+
+vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
+
+    var self = this;
+    var args = arguments;
+    return new Promise(function(resolve, reject) {
+        var data = self.data;
+
+        if (!data.nrows || !data.ncols) {
+            resolve();
+            return;
+        }
+
+        var svg = d3.select(self.$element[0]).select('svg');
+
+        var viewport = svg.select('.viewport');
+        if (viewport.empty()) {
+            viewport = svg.append('g')
+                .attr('class', 'viewport');
+        }
+
+        /*viewport.append('circle')
+            .attr('cx',50)
+            .attr('cy',50)
+            .attr('r',20)
+            .attr('fill','#fe5621')
+            .style('stroke','#000000')
+            .style('stroke-width',5);*/
+
+
+        var labels = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"];
+
+        var width = 900;
+        var height = 700;
+        var sideLength = 30;
+        var dataSize = Math.sqrt(data.length);
+
+        var color = d3.scale.linear()
+            .domain([0, 1])
+            .range(["white", "darkblue"]);
+
+
+       /* var getData = function (d) {
+            var usableData = [];
+            var currentList = [];
+            for (j = 0; j < 100; j++) {
+                currentList.push(d[j]);
+                if (j % 10 == 9) {
+                    usableData.push(currentList);
+                    currentList = [];
+                }
+            }
+            return usableData;
+        };*/
+
+        var rects = viewport.selectAll("g")
+            .data(data.asDataRowArray())
+            .enter()
+            .append("g")
+            .each(function (d, i) {
+                var row = i;
+                d3.select(this)
+                    .selectAll("rect")
+                    .data(function (d) {
+                        d.reverse();
+                        return d.slice(0, dataSize - row);
+                    })
+                    .enter()
+                    .append("rect")
+                    .attr("width", sideLength)
+                    .attr("height", sideLength)
+                    .attr("x", function (d, i) {
+                        return (i) * sideLength;
+                    })
+                    .attr("y", function (d, i) {
+                        return sideLength * (row);
+                    })
+                    .attr("fill", function (d) {
+                        return color(d);
+                    });
+            });
+
+        var rowSelector = viewport.append("rect")
+            .attr("x", 0)
+            .attr("id", "row")
+            .attr("class", "border")
+            .attr("y", 0)
+            .attr("width", (dataSize - 1) * sideLength)
+            .attr("height", sideLength)
+            .style("fill", "none")
+            .style("stroke-width", sideLength / 10);
+
+        var columnSelector = viewport.append("rect")
+            .attr("x", 0)
+            .attr("id", "column")
+            .attr("class", "border")
+            .attr("y", 0)
+            .attr("width", sideLength)
+            .attr("height", (dataSize - 1) * sideLength)
+            .style("fill", "none")
+            .style("stroke-width", sideLength / 10);
+
+        viewport.on('mousemove', function () {
+            var mousePos = d3.mouse(this);
+            if ((mousePos[0] + mousePos[1]) < dataSize * sideLength) {
+                var row = (mousePos[1] - mousePos[1] % sideLength) / sideLength;
+                var column = (mousePos[0] - mousePos[0] % sideLength) / sideLength;
+                d3
+                    .select("#row")
+                    .attr("y", function () {
+                        return row * sideLength;
+                    })
+                    .style("stroke", "black")
+                    .attr("width", function () {
+                        return (dataSize - row) * sideLength;
+                    });
+                d3
+                    .select("#column")
+                    .attr("x", function () {
+                        return column * sideLength;
+                    })
+                    .style("stroke", "black")
+                    .attr("height", function () {
+                        return (dataSize - column) * sideLength;
+                    })
+            }
+            else {
+                d3
+                    .selectAll(".border")
+                    .style("stroke", "none");
+            }
+        });
+
+        var key = viewport.selectAll("text")
+            .data(labels)
+            .enter()
+            .append("text")
+            .attr("x", function (d, i) {
+                return (dataSize - i) * sideLength + sideLength / 4;
+            })
+            .attr("y", function (d, i) {
+                return (i + 1) * sideLength;
+            })
+            .text(function (d, i) {
+                return d;
+            });
+
+        viewport
+            .attr("transform", "translate(" + sideLength / 3 * 2 + "," + 6 * sideLength
+                + ")rotate(45," + dataSize * sideLength + "," + dataSize / 2 * sideLength + ")");
+
+        resolve();
+    }).then(function() {
+        return vs.ui.svg.SvgVis.prototype.endDraw.apply(self, args);
+    });
+
+};
+
+
+
+goog.provide('vs.ui.plugins.canvas.ScatterPlot');
+
+if (COMPILED) {
+  goog.require('vs.ui');
+}
+
+// Because vs.models.DataSource is defined in another library (vis.js), there is no way for the Google Closure compiler
+// to know the names of the private variables of that class. Therefore, when overriding this class, we need to declare
+// private variables in a private scope (closure), using Symbols (ES6), so we don't accidentally replace existing
+// private members.
+
+/**
+ * @constructor
+ * @extends vs.ui.canvas.CanvasVis
+ */
+vs.ui.plugins.canvas.ScatterPlot = (function() {
+  var _quadTree = Symbol('_quadTree');
+
+  /**
+   * @constructor
+   * @extends vs.ui.canvas.CanvasVis
+   */
+  var ScatterPlot = function() {
+    vs.ui.canvas.CanvasVis.apply(this, arguments);
+
+    /**
+     * @type {u.QuadTree}
+     * @private
+     */
+    this[_quadTree] = null;
+  };
+
+  goog.inherits(ScatterPlot, vs.ui.canvas.CanvasVis);
+
+  /**
+   * @type {Object.<string, vs.ui.Setting>}
+   */
+  ScatterPlot.Settings = u.extend({}, vs.ui.canvas.CanvasVis.Settings, {
+    'vals': vs.ui.Setting.PredefinedSettings['vals'],
+    'xBoundaries': vs.ui.Setting.PredefinedSettings['xBoundaries'],
+    'yBoundaries': vs.ui.Setting.PredefinedSettings['yBoundaries'],
+    'xScale': vs.ui.Setting.PredefinedSettings['xScale'],
+    'yScale': vs.ui.Setting.PredefinedSettings['yScale'],
+    'cols': vs.ui.Setting.PredefinedSettings['cols'],
+    'itemRatio': new vs.ui.Setting({'key':'itemRatio', 'type':vs.ui.Setting.Type.NUMBER, 'defaultValue': 0.015, 'label':'item ratio', 'template':'_number.html'}),
+    'fill': vs.ui.Setting.PredefinedSettings['fill'],
+    'stroke': vs.ui.Setting.PredefinedSettings['stroke'],
+    'strokeThickness': vs.ui.Setting.PredefinedSettings['strokeThickness'],
+    'selectFill': vs.ui.Setting.PredefinedSettings['selectFill'],
+    'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
+    'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness']
+  });
+
+  Object.defineProperties(ScatterPlot.prototype, {
+    'settings': { get: /** @type {function (this:ScatterPlot)} */ (function() { return ScatterPlot.Settings; })}
+  });
+
+  ScatterPlot.prototype.beginDraw = function() {
+    var self = this;
+    var args = arguments;
+    return new Promise(function(resolve, reject) {
+      vs.ui.canvas.CanvasVis.prototype.beginDraw.apply(self, args).then(function() {
+        /** @type {vs.models.DataSource} */
+        var data = self.data;
+        if (!self.data.isReady) { resolve(); return; }
+
+        // Nothing to draw
+        if (!data.nrows) { resolve(); return; }
+
+        var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
+        var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
+        var valsLabel = /** @type {string} */ (self.optionValue('vals'));
+        var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
+        var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
+        var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
+
+        var width = /** @type {number} */ (self.optionValue('width'));
+        var height = /** @type {number} */ (self.optionValue('height'));
+
+        var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
+
+        var xCol = cols[0];
+        var yCol = cols[1];
+
+        var qt = new u.QuadTree(margins.left, margins.top, width - margins.left - margins.right, height - margins.top - margins.bottom, itemRatio, 10);
+
+        var transform =
+          vs.models.Transformer
+            .scale(xScale, yScale)
+            .translate({x: margins.left, y: margins.top});
+        var items = self.data.asDataRowArray();
+        var w, h;
+        w = h = itemRadius;
+
+        items.forEach(function(d) {
+          var initialPoint = {x: d.val(xCol, valsLabel), y: d.val(yCol, valsLabel)};
+          var point = transform.calc(initialPoint);
+
+          qt.insert(point.x - w, point.y - h, w * 2, h * 2, d);
+        });
+
+        self[_quadTree] = qt;
+
+        resolve();
+      });
+    });
+  };
+
+  ScatterPlot.prototype.endDraw = function() {
+    var self = this;
+    var args = arguments;
+    return new Promise(function(resolve, reject) {
+      /** @type {vs.models.DataSource} */
+      var data = self.data;
+      if (!self.data.isReady) { resolve(); return; }
+
+      // Nothing to draw
+      if (!data.nrows) { resolve(); return; }
+
+      var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
+      var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
+      var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
+      var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
+      var valsLabel = /** @type {string} */ (self.optionValue('vals'));
+      var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
+      var width = /** @type {number} */ (self.optionValue('width'));
+      var height = /** @type {number} */ (self.optionValue('height'));
+
+      var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
+
+      var xCol = cols[0];
+      var yCol = cols[1];
+
+      var fill = /** @type {string} */ (self.optionValue('fill'));
+      var stroke = /** @type {string} */ (self.optionValue('stroke'));
+      var strokeThickness = /** @type {number} */ (self.optionValue('strokeThickness'));
+
+      var context = self.pendingCanvas[0].getContext('2d');
+
+      var transform =
+        vs.models.Transformer
+          .scale(xScale, yScale)
+          .translate({x: margins.left, y: margins.top});
+      var items = data.asDataRowArray();
+
+      // Instead of drawing all circles synchronously (and risk causing the browser to hang)...
+      /*items.forEach(function(d) {
+       var point = transform.calc({x: d.val(xCol, valsLabel), y: d.val(yCol, valsLabel)});
+       vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, 3, '#ff6520');
+       });
+       resolve();
+       */
+
+      // ... draw them asynchronously, which takes a bit longer, but keeps the UI responsive
+      u.async.each(items, function(d) {
+        return new Promise(function(drawCircleResolve, drawCircleReject) {
+          setTimeout(function() {
+            var point = transform.calc({x: d.val(xCol, valsLabel), y: d.val(yCol, valsLabel)});
+            vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, fill, stroke, strokeThickness);
+            drawCircleResolve();
+          }, 0);
+        });
+      }).then(resolve, reject);
+    }).then(function() {
+        return vs.ui.canvas.CanvasVis.prototype.endDraw.apply(self, args);
+      });
+  };
+
+  /**
+   * @param {number} x
+   * @param {number} y
+   * @returns {Array.<vs.models.DataRow>}
+   */
+  ScatterPlot.prototype.getItemsAt = function(x, y) {
+    if (!this[_quadTree]) { return []; }
+    return this[_quadTree].collisions(x, y).map(function(v) { return v.value; });
+  };
+
+  /**
+   * @param {HTMLElement} canvas
+   * @param {vs.models.DataRow} d
+   */
+  ScatterPlot.prototype.highlightItem = function(canvas, d) {
+    var margins = /** @type {vs.models.Margins} */ (this.optionValue('margins'));
+    var xScale = /** @type {function(number): number} */ (this.optionValue('xScale'));
+    var yScale = /** @type {function(number): number} */ (this.optionValue('yScale'));
+    var cols = /** @type {Array.<string>} */ (this.optionValue('cols'));
+    var valsLabel = /** @type {string} */ (this.optionValue('vals'));
+    var itemRatio = /** @type {number} */ (this.optionValue('itemRatio'));
+    var width = /** @type {number} */ (this.optionValue('width'));
+    var height = /** @type {number} */ (this.optionValue('height'));
+
+    var selectFill = /** @type {string} */ (this.optionValue('selectFill'));
+    var selectStroke = /** @type {string} */ (this.optionValue('selectStroke'));
+    var selectStrokeThickness = /** @type {number} */ (this.optionValue('selectStrokeThickness'));
+
+    var transform =
+      vs.models.Transformer
+        .scale(xScale, yScale)
+        .translate({x: margins.left, y: margins.top});
+
+    var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
+
+    var xCol = cols[0];
+    var yCol = cols[1];
+    var point = transform.calc({x: d.val(xCol, valsLabel), y: d.val(yCol, valsLabel)});
+
+    var context = canvas.getContext('2d');
+    vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, selectFill, selectStroke, selectStrokeThickness);
+  };
+
+  return ScatterPlot;
+})();
+
+
+goog.provide('vs.ui.plugins.svg.Heatmap');
+
+if (COMPILED) {
+  goog.require('vs.ui');
+}
+
+/**
+ * @constructor
+ * @extends vs.ui.svg.SvgVis
+ */
+vs.ui.plugins.svg.Heatmap = function() {
+  vs.ui.svg.SvgVis.apply(this, arguments);
+};
+
+goog.inherits(vs.ui.plugins.svg.Heatmap, vs.ui.svg.SvgVis);
+
+/**
+ * @type {Object.<string, vs.ui.Setting>}
+ */
+vs.ui.plugins.svg.Heatmap.Settings = u.extend({}, vs.ui.VisHandler.Settings, {
+  'vals': vs.ui.Setting.PredefinedSettings['vals'],
+  'xBoundaries': vs.ui.Setting.PredefinedSettings['xBoundaries'],
+  'yBoundaries': vs.ui.Setting.PredefinedSettings['yBoundaries'],
+  //'xScale': vs.ui.Setting.PredefinedSettings['xScale'],
+  //'yScale': vs.ui.Setting.PredefinedSettings['yScale'],
+  'cols': vs.ui.Setting.PredefinedSettings['cols'],
+  //'itemRatio': new vs.ui.Setting({'key':'itemRatio', 'type':vs.ui.Setting.Type.NUMBER, 'defaultValue': 0.015, 'label':'item ratio', 'template':'_number.html'}),
+  'fill': vs.ui.Setting.PredefinedSettings['fill'],
+  'stroke': vs.ui.Setting.PredefinedSettings['stroke'],
+  'strokeThickness': vs.ui.Setting.PredefinedSettings['strokeThickness'],
+  'selectFill': vs.ui.Setting.PredefinedSettings['selectFill'],
+  'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
+  'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness']
+});
+
+Object.defineProperties(vs.ui.plugins.svg.Heatmap.prototype, {
+  'settings': { get: /** @type {function (this:vs.ui.plugins.svg.Heatmap)} */ (function() { return vs.ui.plugins.svg.Heatmap.Settings; })}
+});
+
+/**
+ * @override
+ */
+vs.ui.plugins.svg.Heatmap.prototype.endDraw = function() {
+  var self = this;
+  var args = arguments;
+  return new Promise(function(resolve, reject) {
+    /** @type {vs.models.DataSource} */
+    var data = self.data;
+
+    // Nothing to draw
+    if (!data.nrows) { resolve(); return; }
+
+    var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
+    var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
+    var valsLabel = /** @type {string} */ (self.optionValue('vals'));
+    var width = /** @type {number} */ (self.optionValue('width'));
+    var height = /** @type {number} */ (self.optionValue('height'));
+    var yBoundaries = /** @type {vs.models.Boundaries} */ (self.optionValue('yBoundaries'));
+    var fill = /** @type {string} */ (self.optionValue('fill'));
+    var stroke = /** @type {string} */ (self.optionValue('stroke'));
+    var strokeThickness = /** @type {number} */ (self.optionValue('strokeThickness'));
+
+    var xScale = d3.scale.linear()
+      .domain([0, cols.length])
+      .range([0, width - margins.left - margins.right]);
+
+    var yScale = d3.scale.linear()
+      .domain([0, data.nrows])
+      .range([0, height - margins.top - margins.bottom]);
+
+    var colorScale = d3.scale.linear()
+      .domain([yBoundaries.min, yBoundaries.max])
+      .range(['#ffffff', fill]);
+
+    var svg = d3.select(self.$element[0]).select('svg');
+
+    var viewport = svg.select('.viewport');
+    if (viewport.empty()) {
+      viewport = svg.append('g')
+        .attr('class', 'viewport');
+    }
+    viewport
+      .attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
+
+    var items = data.asDataRowArray();
+    var selection = viewport.selectAll('g').data(items, vs.models.DataSource.key);
+
+    selection.enter()
+      .append('g')
+      .attr('class', 'vs-item');
+
+    selection
+      .attr('transform', function(d, i) { return 'translate(0,' + yScale(i) + ')'; })
+      .each(function(d, i) {
+        var cells = d3.select(this).selectAll('rect').data(cols);
+        cells
+          .enter()
+          .append('rect')
+          .attr('class', 'vs-cell');
+        cells
+          .attr('x', function(col, j) { return xScale(j); })
+          //.attr('y', yScale(i))
+          .attr('y', 0)
+          .attr('width', xScale(1))
+          .attr('height', yScale(1))
+          .attr('fill', function(col) { return colorScale(d.val(col, valsLabel)); });
+      });
+
+    selection.exit()
+      .remove();
+
+    resolve();
+  }).then(function() {
+    return vs.ui.svg.SvgVis.prototype.endDraw.apply(self, args);
+  });
+};
+
+/**
+ * @param {HTMLElement} viewport Can be canvas, svg, etc.
+ * @param {vs.models.DataRow} d
+ */
+vs.ui.plugins.svg.Heatmap.prototype.highlightItem = function(viewport, d) {
+  var v = d3.select(viewport);
+  var selectFill = /** @type {string} */ (this.optionValue('selectFill'));
+  var selectStroke = /** @type {string} */ (this.optionValue('selectStroke'));
+  var selectStrokeThickness = /** @type {number} */ (this.optionValue('selectStrokeThickness'));
+  var valsLabel = /** @type {string} */ (this.optionValue('vals'));
+  var yBoundaries = /** @type {vs.models.Boundaries} */ (this.optionValue('yBoundaries'));
+
+  var margins = /** @type {vs.models.Margins} */ (this.optionValue('margins'));
+  var width = /** @type {number} */ (this.optionValue('width'));
+  var height = /** @type {number} */ (this.optionValue('height'));
+
+  var yScale = d3.scale.linear()
+    .domain([0, d.data.nrows])
+    .range([0, height - margins.top - margins.bottom]);
+
+  var colorScale = d3.scale.linear()
+    .domain([yBoundaries.min, yBoundaries.max])
+    .range(['#ffffff', selectFill]);
+  var itemHeight = (height - margins.top - margins.bottom) / d.data.nrows;
+
+  var minHeight = Math.max(itemHeight, 25); // a selected row will increase size to this height if necessary
+  var heightScale = minHeight / itemHeight;
+  var dif = minHeight - itemHeight;
+
+  var items = v.selectAll('.vs-item').data([d], vs.models.DataSource.key);
+  items
+    .each(function() {
+      var item = d3.select(this);
+      item.selectAll('.vs-cell')
+        .attr('fill', function(col) { return colorScale(d.val(col, valsLabel)); });
+    });
+  v.append('rect')
+    .attr('class', 'vs-item-border')
+    .attr('x', -selectStrokeThickness)
+    .attr('y', d.index * itemHeight - selectStrokeThickness - 0.5 * dif)
+    .attr('width', width - margins.left - margins.right + 2 * selectStrokeThickness)
+    .attr('height', dif + itemHeight + 2 * selectStrokeThickness)
+    .style('stroke', selectStroke)
+    .style('stroke-width', selectStrokeThickness)
+    .style('fill', 'none');
+  items
+    .attr('transform', function(d, i) {
+      return 'translate(0, ' + (yScale(d.index) - dif * 0.5) + ') scale(1, ' + heightScale + ')';
+    });
+  $(items[0]).appendTo($(viewport));
+};
+
+/**
+ * @param {HTMLElement} viewport Can be canvas, svg, etc.
+ * @param {vs.models.DataRow} d
+ */
+vs.ui.plugins.svg.Heatmap.prototype.unhighlightItem = function(viewport, d) {
+  var v = d3.select(viewport);
+  var fill = /** @type {string} */ (this.optionValue('fill'));
+  var yBoundaries = /** @type {vs.models.Boundaries} */ (this.optionValue('yBoundaries'));
+  var valsLabel = /** @type {string} */ (this.optionValue('vals'));
+  var margins = /** @type {vs.models.Margins} */ (this.optionValue('margins'));
+  var width = /** @type {number} */ (this.optionValue('width'));
+  var height = /** @type {number} */ (this.optionValue('height'));
+  var yScale = d3.scale.linear()
+    .domain([0, d.data.nrows])
+    .range([0, height - margins.top - margins.bottom]);
+  var colorScale = d3.scale.linear()
+    .domain([yBoundaries.min, yBoundaries.max])
+    .range(['#ffffff', fill]);
+  v.selectAll('.vs-item').data([d], vs.models.DataSource.key)
+    .each(function() {
+      var item = d3.select(this);
+      item.selectAll('.vs-cell')
+        .attr('fill', function(col) { return colorScale(d.val(col, valsLabel)); });
+    })
+    .attr('transform', function(d, i) { return 'translate(0,' + yScale(d.index) + ')'; });
+  v.selectAll('.vs-item-border').remove();
+};
+
+
 goog.provide('vs.ui.plugins.svg.ScatterPlot');
 
 if (COMPILED) {
@@ -938,3 +1109,4 @@ goog.require('vs.ui.plugins.canvas.ScatterPlot');
 goog.require('vs.ui.plugins.svg.ManhattanPlot');
 goog.require('vs.ui.plugins.svg.ScatterPlot');
 goog.require('vs.ui.plugins.svg.Heatmap');
+goog.require('vs.ui.plugins.svg.LDHeatmap');
