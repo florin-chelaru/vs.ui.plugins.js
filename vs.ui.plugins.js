@@ -410,6 +410,11 @@ vs.ui.plugins.svg.LDHeatmap.Settings = u.extend({}, vs.ui.VisHandler.Settings, {
     'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness']
 });
 
+Object.defineProperties(vs.ui.plugins.svg.LDHeatmap.prototype, {
+    'settings': { get: /** @type {function (this:vs.ui.plugins.svg.Heatmap)} */ (function() { return vs.ui.plugins.svg.LDHeatmap.Settings; })}
+});
+
+
 vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
 
     var self = this;
@@ -504,7 +509,7 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
             .each(function(d, i) {
                 var row = i;
                 var cells = d3.select(this).selectAll('rect')
-                    .data(items)
+                    .data(items);
                 /*.data(function (d) {
                         d.reverse();
                         console.log(d);
