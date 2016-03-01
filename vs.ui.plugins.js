@@ -455,16 +455,6 @@ if(COMPILED){
  */
 vs.ui.plugins.svg.Line = function(){
     vs.ui.svg.SvgVis.apply(this, arguments);
-    /**
-     * @type {number}
-     */
-    this['publicField'] = 20;
-
-    /**
-     * @type {number}
-     * @private
-     */
-    this._privateField = 10;
 };
 
 goog.inherits(vs.ui.plugins.svg.Line, vs.ui.svg.SvgVis);
@@ -519,9 +509,9 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
         }
 
 // This is to have a selector to my svg element
-        var vis = d3.select('#visualisation'),
+        var svg = d3.select(self.$element[0]).select('svg');
 // These are variables that determine the size of my graph and margins
-            WIDTH = 1000,
+            /*WIDTH = 1000,
             HEIGHT = 500,
             MARGINS = {
                 top: 20,
@@ -552,18 +542,23 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                 .tickSize(5)
                 // Put the ticks on the left side
                 .orient('left');
-
+                */
+        var vis  = svg.select('.viewport');
+        if (vis.empty()) {
+            vis = svg.append('g')
+                .attr('class', 'viewport');
+        }
 // append in groups to my svg plot in and add more attributes to make it fit
-        vis.append('svg:g')
+        vis.append('g')
             .attr('class', 'x axis')
             .attr('transform', 'translate(0,' + (HEIGHT - MARGINS.bottom) + ')')
             .call(xAxis);
 
-        vis.append('svg:g')
+        vis.append('g')
             .attr('class', 'y axis')
             .attr('transform', 'translate(' + (MARGINS.left) + ',0)')
             .call(yAxis);
-
+/*
 // create our line element
         var lineFunc = d3.svg.line()
             .x(function (d) {
@@ -580,7 +575,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
 
         xy.forEach(function (d, i) {
-            vis.append('svg:path')
+            vis.append('path')
                 .attr('d', lineFunc(d))
                 .attr('stroke', colorOption[i])
                 .attr("stroke-width", 2)
@@ -588,7 +583,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                 .attr('fill', 'none');
 
             // Add the Legend
-            vis.append('svg:text')
+            vis.append('text')
                 .attr("x", 80 + 80 * i)
                 .attr("y", 550)
                 .attr("class", "legend")
@@ -613,7 +608,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
         for (var i = 0; i < xy.length; i++) {
 
-            var focus = vis.append('svg:g')
+            var focus = vis.append('g')
                 .attr("class", "focus")
                 .style("display", "none");
             focus.append("circle")
@@ -627,7 +622,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
         }
 
 
-        vis.append('svg:rect')
+        vis.append('rect')
             .attr("class", "overlay")
             .attr("width", WIDTH)
             .attr("height", HEIGHT)
@@ -652,11 +647,11 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                     foci[i].select("text").text(d2.x + ", " + d2.y);
                 });
             });
-
+        */
         resolve();
     }).then(function(){
         return vs.ui.svg.SvgVis.prototype.endDraw.apply(self, args);
-    })
+    });
 };
 
 
