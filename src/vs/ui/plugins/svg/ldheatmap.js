@@ -83,6 +83,10 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
             .domain([0, 1])
             .range(["white", "darkblue"]);
 
+        var colorScale = d3.scale.linear()
+            .domain([yBoundaries.min, yBoundaries.max])
+            .range(['#ffffff', fill]);
+
         var svg = d3.select(self.$element[0]).select('svg');
 
         var viewport = svg.select('.viewport');
@@ -128,8 +132,7 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
             .attr('transform', function(d, i) { return 'translate(0,' + yScale(i) + ')'; })
             .each(function(d, i) {
                 var row = i;
-                var cells = d3.select(this).selectAll('rect')
-                    .data(cols);
+                var cells = d3.select(this).selectAll('rect').data(cols);
                 /*.data(function (d) {
                         d.reverse();
                         console.log(d);
@@ -145,7 +148,7 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
                     .attr('y', 0)
                     .attr('width', xScale(1))
                     .attr('height', yScale(1))
-                    .attr('fill', function(d) { return color(d); });
+                    .attr('fill', function(d) { return color(d.val(col, valsLabel)); });
             });
 
         selection.exit()
