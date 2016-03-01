@@ -19,12 +19,12 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
     var self = this;
     var args = arguments;
     return new Promise(function(resolve, reject) {
-        var data = self.data;
+        //var data = self.data;
 
-        if (!data.nrows || !data.ncols) {
+        /*if (!data.nrows || !data.ncols) {
             resolve();
             return;
-        }
+        }*/
 
         var svg = d3.select(self.$element[0]).select('svg');
 
@@ -42,9 +42,24 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
             .style('stroke','#000000')
             .style('stroke-width',5);*/
 
+        var dataArray = {
+            "nrows": 10,
+            "ncols": 10,
+            "rows": [
+                {"label": "id", "d": ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]}
+            ],
+            "cols": [
+                {"label": "id", "d": ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]}
+            ],
+            "vals":[
+                {"label": "correlation", "boundaries": {"min": 0, "max": 1}, "d": [1, 0.599, 0.858, 0.5491, 0.521, 0.2598, 0.3858, 0.823, 0.6673, 0.3471, 0.599, 1, 0.5979, 0.5942, 0.8378, 0.5906, 0.9196, 0.708, 0.397, 0.9149, 0.858, 0.5979, 1, 0.6013, 0.3863, 0.21067, 0.5769, 0.18874, 0.48545, 0.7273, 0.5491, 0.5942, 0.6013, 1, 0.8163, 0.9261, 0.16882, 0.444, 0.6611, 0.02657, 0.521, 0.8378, 0.3863, 0.8163, 1, 0.3869, 0.223, 0.5229, 0.952, 0.177, 0.2598, 0.5906, 0.21067, 0.9261, 0.3869, 1, 0.06935, 0.13751, 0.539, 0.7744, 0.3858, 0.9196, 0.5769, 0.16882, 0.223, 0.06935, 1, 0.567, 0.6484, 0.2659, 0.823, 0.708, 0.18874, 0.444, 0.5229, 0.13751, 0.567, 1, 0.7609, 0.2278, 0.6673, 0.397, 0.48545, 0.6611, 0.952, 0.539, 0.6484, 0.7609, 1, 0.65442, 0.3471, 0.9149, 0.7273, 0.026576, 0.17701, 0.7744, 0.26593, 0.2278, 0.6544, 1]}
+            ]
+        };
+
         var labels = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"];
 
         var sideLength = 30;
+        var data = dataArray["vals"][0]["d"];
         var dataSize = Math.sqrt(data.length);
 
         var color = d3.scale.linear()
