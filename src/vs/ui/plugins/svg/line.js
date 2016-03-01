@@ -13,6 +13,7 @@ if(COMPILED){
  */
 vs.ui.plugins.svg.Line = function(){
     vs.ui.svg.SvgVis.apply(this, arguments);
+
 };
 
 goog.inherits(vs.ui.plugins.svg.Line, vs.ui.svg.SvgVis);
@@ -67,9 +68,9 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
         }
 
 // This is to have a selector to my svg element
-        var svg = d3.select(self.$element[0]).select('svg');
+        var svg = d3.select(self.$element[0]).select('svg'),
 // These are variables that determine the size of my graph and margins
-            /*WIDTH = 1000,
+            WIDTH = 1000,
             HEIGHT = 500,
             MARGINS = {
                 top: 20,
@@ -100,7 +101,6 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                 .tickSize(5)
                 // Put the ticks on the left side
                 .orient('left');
-                */
         var vis  = svg.select('.viewport');
         if (vis.empty()) {
             vis = svg.append('g')
@@ -116,7 +116,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
             .attr('class', 'y axis')
             .attr('transform', 'translate(' + (MARGINS.left) + ',0)')
             .call(yAxis);
-/*
+
 // create our line element
         var lineFunc = d3.svg.line()
             .x(function (d) {
@@ -205,7 +205,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                     foci[i].select("text").text(d2.x + ", " + d2.y);
                 });
             });
-        */
+        
         resolve();
     }).then(function(){
         return vs.ui.svg.SvgVis.prototype.endDraw.apply(self, args);
