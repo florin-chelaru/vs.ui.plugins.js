@@ -28,16 +28,17 @@ goog.inherits(vs.ui.plugins.svg.ManhattanPlot, vs.ui.svg.SvgVis);
  * @type {Object.<string, vs.ui.Setting>}
  */
 vs.ui.plugins.svg.ManhattanPlot.Settings = u.extend({}, vs.ui.VisHandler.Settings, {
-  'rows': vs.ui.Setting.PredefinedSettings['rows'],
-  'vals': vs.ui.Setting.PredefinedSettings['vals'],
-  'xBoundaries': new vs.ui.Setting({key:'xBoundaries', type:'vs.models.Boundaries', defaultValue:vs.ui.Setting.rowBoundaries, label:'x boundaries', template:'_boundaries.html'}),
+  'xVal': vs.ui.Setting.PredefinedSettings['xVal'],
+  'yVal': vs.ui.Setting.PredefinedSettings['yVal'],
+  'xBoundaries': vs.ui.Setting.PredefinedSettings['xBoundaries'],
   'yBoundaries': vs.ui.Setting.PredefinedSettings['yBoundaries'],
   'xScale': vs.ui.Setting.PredefinedSettings['xScale'],
   'yScale': vs.ui.Setting.PredefinedSettings['yScale'],
   'cols': vs.ui.Setting.PredefinedSettings['cols'],
   'itemRatio': new vs.ui.Setting({'key':'itemRatio', 'type':vs.ui.Setting.Type.NUMBER, 'defaultValue': 0.015, 'label':'item ratio', 'template':'_number.html'}),
-  'fill': vs.ui.Setting.PredefinedSettings['fill'],
-  'stroke': vs.ui.Setting.PredefinedSettings['stroke'],
+  'fills': vs.ui.Setting.PredefinedSettings['fills'],
+  'fillOpacity': vs.ui.Setting.PredefinedSettings['fillOpacity'],
+  'strokes': vs.ui.Setting.PredefinedSettings['strokes'],
   'strokeThickness': vs.ui.Setting.PredefinedSettings['strokeThickness'],
   'selectFill': vs.ui.Setting.PredefinedSettings['selectFill'],
   'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
@@ -55,27 +56,32 @@ vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw = function() {
   var self = this;
   var args = arguments;
   return new Promise(function(resolve, reject) {
-    /** @type {vs.models.DataSource} */
+    /** @type {Array.<vs.models.DataSource>} */
     var data = self.data;
 
     // Nothing to draw
-    if (!data.nrows) { resolve(); return; }
+    if (!data.length) { resolve(); return; }
+
+    var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
+    data = data.filter(function(d) { return cols.indexOf(d.id) >= 0; });
 
     var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
     var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
     var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
-    var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
-    var row = (/** @type {Array.<string>} */ (self.optionValue('rows')))[0];
-    var valsLabel = /** @type {string} */ (self.optionValue('vals'));
-    var fill = /** @type {string} */ (self.optionValue('fill'));
-    var stroke = /** @type {string} */ (self.optionValue('stroke'));
+
+    var x = /** @type {string} */ (self.optionValue('xVal'));
+    var y = /** @type {string} */ (self.optionValue('yVal'));
+
+    var fills = /** @type {function(*):string} */ (self.optionValue('fills'));
+    var fillOpacity = /** @type {number} */ (self.optionValue('fillOpacity'));
+    var strokes = /** @type {function(*):string} */ (self.optionValue('strokes'));
     var strokeThickness = /** @type {number} */ (self.optionValue('strokeThickness'));
     var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
     var width = /** @type {number} */ (self.optionValue('width'));
     var height = /** @type {number} */ (self.optionValue('height'));
     var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
-    var svg = d3.select(self.$element[0]).select('svg');
 
+    var svg = d3.select(self.$element[0]).select('svg');
     var viewport = svg.select('.viewport');
     if (viewport.empty()) {
       viewport = svg.append('g')
@@ -84,8 +90,8 @@ vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw = function() {
     viewport
       .attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
 
-    var items = data.asDataRowArray();
-    var selection = viewport.selectAll('circle').data(items, vs.models.DataSource.key);
+    var items = data.map(function(d) { return d.d; }).reduce(function(arr1, arr2) { return arr1.concat(arr2); });
+    var selection = viewport.selectAll('circle').data(items, JSON.stringify);
 
     selection.enter()
       .append('circle')
@@ -93,10 +99,11 @@ vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw = function() {
 
     selection
       .attr('r', itemRadius)
-      .attr('cx', function(d) { return xScale(parseFloat(d.info(row))); })
-      .attr('cy', function(d) { return yScale(d.val(cols[0], valsLabel)); })
-      .attr('fill', fill)
-      .style('stroke', stroke)
+      .attr('cx', function(d) { return xScale(parseFloat(d[x])); })
+      .attr('cy', function(d) { return yScale(parseFloat(d[y])); })
+      .attr('fill', function(d) { return fills(d['__d__']); })
+      .attr('fill-opacity', '.3')
+      .style('stroke', function(d) { return strokes([d['__d__']]); })
       .style('stroke-width', strokeThickness);
 
     selection.exit()
@@ -110,32 +117,32 @@ vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw = function() {
 
 /**
  * @param {HTMLElement} viewport Can be canvas, svg, etc.
- * @param {vs.models.DataRow} d
+ * @param {Object} d
  */
 vs.ui.plugins.svg.ManhattanPlot.prototype.highlightItem = function(viewport, d) {
-  var v = d3.select(viewport);
-  var selectFill = /** @type {string} */ (this.optionValue('selectFill'));
-  var selectStroke = /** @type {string} */ (this.optionValue('selectStroke'));
-  var selectStrokeThickness = /** @type {number} */ (this.optionValue('selectStrokeThickness'));
+  /*var v = d3.select(viewport);
+  var selectFill = /!** @type {string} *!/ (this.optionValue('selectFill'));
+  var selectStroke = /!** @type {string} *!/ (this.optionValue('selectStroke'));
+  var selectStrokeThickness = /!** @type {number} *!/ (this.optionValue('selectStrokeThickness'));
   var items = v.selectAll('.vs-item').data([d], vs.models.DataSource.key);
   items
     .style('stroke', selectStroke)
     .style('stroke-width', selectStrokeThickness)
     .style('fill', selectFill);
-  $(items[0]).appendTo($(viewport));
+  $(items[0]).appendTo($(viewport));*/
 };
 
 /**
  * @param {HTMLElement} viewport Can be canvas, svg, etc.
- * @param {vs.models.DataRow} d
+ * @param {Object} d
  */
 vs.ui.plugins.svg.ManhattanPlot.prototype.unhighlightItem = function(viewport, d) {
-  var v = d3.select(viewport);
-  var fill = /** @type {string} */ (this.optionValue('fill'));
-  var stroke = /** @type {string} */ (this.optionValue('stroke'));
-  var strokeThickness = /** @type {number} */ (this.optionValue('strokeThickness'));
+  /*var v = d3.select(viewport);
+  var fill = /!** @type {string} *!/ (this.optionValue('fill'));
+  var stroke = /!** @type {string} *!/ (this.optionValue('stroke'));
+  var strokeThickness = /!** @type {number} *!/ (this.optionValue('strokeThickness'));
   v.selectAll('.vs-item').data([d], vs.models.DataSource.key)
     .style('stroke', stroke)
     .style('stroke-width', strokeThickness)
-    .style('fill', fill);
+    .style('fill', fill);*/
 };
