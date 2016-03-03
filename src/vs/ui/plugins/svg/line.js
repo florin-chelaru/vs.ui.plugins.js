@@ -50,8 +50,6 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
     return new Promise(function(resolve, reject) {
         var colorOption = ['blue', 'red'];
-        var minX = 95741;
-        var maxX = 601592;
         var categories = ["tumor", "healthy"];
 
         var data = self.data;
@@ -90,10 +88,10 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
         var lineFunc = d3.svg.line()
             .x(function (d) {
-                return xScale(d.x);
+                return xScale(parseFloat(d.info(row)));
             })
             .y(function (d) {
-                return yScale(d.y);
+                return yScale(d.val(cols[0], valsLabel));
             })
             .interpolate('linear');
 
@@ -103,7 +101,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
 
         xy.forEach(function (d, i) {
-            vis.selectAll('path')
+            vis.append('path')
                 .attr('d', lineFunc(d))
                 .attr('stroke', colorOption[i])
                 .attr("stroke-width", strokeThickness)
@@ -130,7 +128,6 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
             d.sort(function (a, b) {
                 return a.x - b.x;
             });*/
-
         });
         /*
         var foci = [];
