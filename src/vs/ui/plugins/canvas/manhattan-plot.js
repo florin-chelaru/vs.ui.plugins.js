@@ -42,16 +42,17 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
    * @type {Object.<string, vs.ui.Setting>}
    */
   ManhattanPlot.Settings = u.extend({}, vs.ui.canvas.CanvasVis.Settings, {
-    'rows': vs.ui.Setting.PredefinedSettings['rows'],
-    'vals': vs.ui.Setting.PredefinedSettings['vals'],
-    'xBoundaries': new vs.ui.Setting({key:'xBoundaries', type:'vs.models.Boundaries', defaultValue:vs.ui.Setting.rowBoundaries, label:'x boundaries', template:'_boundaries.html'}),
+    'xVal': vs.ui.Setting.PredefinedSettings['xVal'],
+    'yVal': vs.ui.Setting.PredefinedSettings['yVal'],
+    'xBoundaries': vs.ui.Setting.PredefinedSettings['xBoundaries'],
     'yBoundaries': vs.ui.Setting.PredefinedSettings['yBoundaries'],
     'xScale': vs.ui.Setting.PredefinedSettings['xScale'],
     'yScale': vs.ui.Setting.PredefinedSettings['yScale'],
     'cols': vs.ui.Setting.PredefinedSettings['cols'],
     'itemRatio': new vs.ui.Setting({'key':'itemRatio', 'type':vs.ui.Setting.Type.NUMBER, 'defaultValue': 0.015, 'label':'item ratio', 'template':'_number.html'}),
-    'fill': vs.ui.Setting.PredefinedSettings['fill'],
-    'stroke': vs.ui.Setting.PredefinedSettings['stroke'],
+    'fills': vs.ui.Setting.PredefinedSettings['fills'],
+    'fillOpacity': vs.ui.Setting.PredefinedSettings['fillOpacity'],
+    'strokes': vs.ui.Setting.PredefinedSettings['strokes'],
     'strokeThickness': vs.ui.Setting.PredefinedSettings['strokeThickness'],
     'selectFill': vs.ui.Setting.PredefinedSettings['selectFill'],
     'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
@@ -67,19 +68,22 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
     var args = arguments;
     return new Promise(function(resolve, reject) {
       vs.ui.canvas.CanvasVis.prototype.beginDraw.apply(self, args).then(function() {
-        /** @type {vs.models.DataSource} */
+        /** @type {Array.<vs.models.DataSource>} */
         var data = self.data;
-        if (!self.data.isReady) { resolve(); return; }
+
+        var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
+        data = data.filter(function(d) { return cols.indexOf(d.id) >= 0; });
 
         // Nothing to draw
-        if (!data.nrows) { resolve(); return; }
+        if (!data.length || !vs.models.DataSource.allDataIsReady(data)) { resolve(); return; }
 
         var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
         var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
         var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
-        var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
-        var row = (/** @type {Array.<string>} */ (self.optionValue('rows')))[0];
-        var valsLabel = /** @type {string} */ (self.optionValue('vals'));
+
+        var x = /** @type {string} */ (self.optionValue('xVal'));
+        var y = /** @type {string} */ (self.optionValue('yVal'));
+
         var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
 
         var width = /** @type {number} */ (self.optionValue('width'));
@@ -93,12 +97,13 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
           vs.models.Transformer
             .scale(xScale, yScale)
             .translate({'x': margins.left, 'y': margins.top});
-        var items = data.asDataRowArray();
+        // var items = data.asDataRowArray();
+        var items = data.map(function(d) { return d.d; }).reduce(function(arr1, arr2) { return arr1.concat(arr2); });
         var w, h;
         w = h = itemRadius;
 
         items.forEach(function(d) {
-          var initialPoint = {x: parseFloat(d.info(row)), y: d.val(cols[0], valsLabel)};
+          var initialPoint = {x: parseFloat(d[x]), y: parseFloat(d[y])};
           var point = transform.calc(initialPoint);
 
           qt.insert(point.x - w, point.y - h, w * 2, h * 2, d);
@@ -115,26 +120,30 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
     var self = this;
     var args = arguments;
     return new Promise(function(resolve, reject) {
-      /** @type {vs.models.DataSource} */
+      /** @type {Array.<vs.models.DataSource>} */
       var data = self.data;
-      if (!self.data.isReady) { resolve(); return; }
+
+      var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
+      data = data.filter(function(d) { return cols.indexOf(d.id) >= 0; });
 
       // Nothing to draw
-      if (!data.nrows) { resolve(); return; }
+      if (!data.length || !vs.models.DataSource.allDataIsReady(data)) { resolve(); return; }
 
       var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
       var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
       var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
-      var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
-      var row = (/** @type {Array.<string>} */ (self.optionValue('rows')))[0];
-      var valsLabel = /** @type {string} */ (self.optionValue('vals'));
+
+      var x = /** @type {string} */ (self.optionValue('xVal'));
+      var y = /** @type {string} */ (self.optionValue('yVal'));
+
       var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
       var width = /** @type {number} */ (self.optionValue('width'));
       var height = /** @type {number} */ (self.optionValue('height'));
       var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
 
-      var fill = /** @type {string} */ (self.optionValue('fill'));
-      var stroke = /** @type {string} */ (self.optionValue('stroke'));
+      var fills = /** @type {function(*):string} */ (self.optionValue('fills'));
+      var fillOpacity = /** @type {number} */ (self.optionValue('fillOpacity'));
+      var strokes = /** @type {function(*):string} */ (self.optionValue('strokes'));
       var strokeThickness = /** @type {number} */ (self.optionValue('strokeThickness'));
 
       var context = self.pendingCanvas[0].getContext('2d');
@@ -143,7 +152,7 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
         vs.models.Transformer
           .scale(xScale, yScale)
           .translate({'x': margins.left, 'y': margins.top});
-      var items = data.asDataRowArray();
+      var items = data.map(function(d) { return d.d; }).reduce(function(arr1, arr2) { return arr1.concat(arr2); });
 
       // Instead of drawing all circles synchronously (and risk causing the browser to hang)...
       /*items.forEach(function(d) {
@@ -157,8 +166,8 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
       u.async.each(items, function(d) {
         return new Promise(function(drawCircleResolve, drawCircleReject) {
           setTimeout(function() {
-            var point = transform.calc({x: parseFloat(d.info(row)), y: d.val(cols[0], valsLabel)});
-            vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, fill, stroke, strokeThickness);
+            var point = transform.calc({x: parseFloat(d[x]), y: parseFloat(d[y])});
+            vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, u.hex2rgba(fills(d['__d__']), fillOpacity), strokes(d['__d__']), strokeThickness);
             drawCircleResolve();
           }, 0);
         });
@@ -171,33 +180,34 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
   /**
    * @param {number} x
    * @param {number} y
-   * @returns {Array.<vs.models.DataRow>}
+   * @returns {Array.<Object>}
    */
   ManhattanPlot.prototype.getItemsAt = function(x, y) {
-    if (!this[_quadTree]) { return []; }
-    return this[_quadTree].collisions(x, y).map(function(v) { return v.value; });
+    /*if (!this[_quadTree]) { return []; }
+    return this[_quadTree].collisions(x, y).map(function(v) { return v.value; });*/
+    return [];
   };
 
   /**
    * @param {HTMLElement} canvas
-   * @param {vs.models.DataRow} d
+   * @param {Object} d
    */
   ManhattanPlot.prototype.highlightItem = function(canvas, d) {
-    var self = this;
-    var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
-    var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
-    var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
-    var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
-    var row = (/** @type {Array.<string>} */ (self.optionValue('rows')))[0];
-    var valsLabel = /** @type {string} */ (self.optionValue('vals'));
-    var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
-    var width = /** @type {number} */ (self.optionValue('width'));
-    var height = /** @type {number} */ (self.optionValue('height'));
+    /*var self = this;
+    var margins = /!** @type {vs.models.Margins} *!/ (self.optionValue('margins'));
+    var xScale = /!** @type {function(number): number} *!/ (self.optionValue('xScale'));
+    var yScale = /!** @type {function(number): number} *!/ (self.optionValue('yScale'));
+    var cols = /!** @type {Array.<string>} *!/ (self.optionValue('cols'));
+    var row = (/!** @type {Array.<string>} *!/ (self.optionValue('rows')))[0];
+    var valsLabel = /!** @type {string} *!/ (self.optionValue('vals'));
+    var itemRatio = /!** @type {number} *!/ (self.optionValue('itemRatio'));
+    var width = /!** @type {number} *!/ (self.optionValue('width'));
+    var height = /!** @type {number} *!/ (self.optionValue('height'));
     var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
 
-    var selectFill = /** @type {string} */ (this.optionValue('selectFill'));
-    var selectStroke = /** @type {string} */ (this.optionValue('selectStroke'));
-    var selectStrokeThickness = /** @type {number} */ (this.optionValue('selectStrokeThickness'));
+    var selectFill = /!** @type {string} *!/ (this.optionValue('selectFill'));
+    var selectStroke = /!** @type {string} *!/ (this.optionValue('selectStroke'));
+    var selectStrokeThickness = /!** @type {number} *!/ (this.optionValue('selectStrokeThickness'));
 
     var transform =
       vs.models.Transformer
@@ -207,7 +217,7 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
     var point = transform.calc({x: parseFloat(d.info(row)), y: d.val(cols[0], valsLabel)});
 
     var context = canvas.getContext('2d');
-    vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, selectFill, selectStroke, selectStrokeThickness);
+    vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, selectFill, selectStroke, selectStrokeThickness);*/
   };
 
   return ManhattanPlot;

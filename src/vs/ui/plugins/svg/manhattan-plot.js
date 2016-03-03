@@ -59,11 +59,11 @@ vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw = function() {
     /** @type {Array.<vs.models.DataSource>} */
     var data = self.data;
 
-    // Nothing to draw
-    if (!data.length) { resolve(); return; }
-
     var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
     data = data.filter(function(d) { return cols.indexOf(d.id) >= 0; });
+
+    // Nothing to draw
+    if (!data.length || !vs.models.DataSource.allDataIsReady(data)) { resolve(); return; }
 
     var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
     var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
@@ -101,8 +101,7 @@ vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw = function() {
       .attr('r', itemRadius)
       .attr('cx', function(d) { return xScale(parseFloat(d[x])); })
       .attr('cy', function(d) { return yScale(parseFloat(d[y])); })
-      .attr('fill', function(d) { return fills(d['__d__']); })
-      .attr('fill-opacity', '.3')
+      .attr('fill', function(d) { return u.hex2rgba(fills(d['__d__']), fillOpacity); })
       .style('stroke', function(d) { return strokes([d['__d__']]); })
       .style('stroke-width', strokeThickness);
 

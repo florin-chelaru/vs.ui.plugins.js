@@ -6,8 +6,8 @@
 
 goog.provide('vs.ui.plugins');
 
-//goog.require('vs.ui.plugins.canvas.ManhattanPlot');
-//goog.require('vs.ui.plugins.canvas.ScatterPlot');
+goog.require('vs.ui.plugins.canvas.ManhattanPlot');
+goog.require('vs.ui.plugins.canvas.ScatterPlot');
 goog.require('vs.ui.plugins.svg.ManhattanPlot');
 goog.require('vs.ui.plugins.svg.ScatterPlot');
 //goog.require('vs.ui.plugins.svg.Heatmap');

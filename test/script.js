@@ -312,7 +312,7 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
         children: [],
         dataChanged: new u.Event(),
         visualizations: [
-          /*{
+          {
             construct: {
               render: 'canvas',
               type: 'scatterplot'
@@ -330,8 +330,11 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
                 bottom: 10,
                 top: 10
               },
-              cols: [0, 0],
-              vals: 'dna methylation'
+              cols: ['1jOD1q','5B0Aap'],
+              xVal: 'start',
+              yVal: 'gwasPval',
+              fills: function() { return palette; },
+              strokes: function() { return palette; }
             },
             decorators: {
               cls: [
@@ -368,7 +371,7 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
                 }
               ]
             }
-          },*/
+          },
           {
             construct: {
               render: 'svg',
@@ -427,7 +430,7 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
               ]
             }
           },
-          /*{
+          {
             construct: {
               render: 'canvas',
               type: 'manhattan'
@@ -444,9 +447,11 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
                 bottom: 10,
                 top: 10
               },
-              cols: [0, 1],
-              vals: 'v0',
-              rows: ['start', 'end']
+              cols: ['1jOD1q','5B0Aap'],
+              xVal: 'start',
+              yVal: 'gwasPval',
+              fills: function() { return palette; },
+              strokes: function() { return palette; }
             },
             decorators: {
               cls: [
@@ -483,7 +488,7 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
                 }
               ]
             }
-          },*/
+          },
           {
             construct: {
               render: 'svg',
