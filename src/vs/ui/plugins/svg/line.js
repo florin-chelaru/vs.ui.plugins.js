@@ -103,7 +103,9 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
 
         xy.forEach(function (d, i) {
-            vis.append('path')
+            vis.selectAll('path')
+                .enter()
+                .append('path')
                 .attr('d', lineFunc(d))
                 .attr('stroke', colorOption[i])
                 .attr("stroke-width", strokeThickness)
@@ -130,6 +132,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
             d.sort(function (a, b) {
                 return a.x - b.x;
             });*/
+            
         });
         /*
         var foci = [];
