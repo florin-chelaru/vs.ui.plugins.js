@@ -77,6 +77,8 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                 .attr('class', 'viewport');
         }
 
+        vis.attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
+
         var xy = [];
         for (var i = 0; i < data.ncols; i++) {
             var xytumor = [];
