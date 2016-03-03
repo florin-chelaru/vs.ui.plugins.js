@@ -519,7 +519,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                 .attr('class', 'viewport');
         }
 
-        console.log(row[0].d[0]);
+        console.log(row.d[0]);
         //var items = data.asDataRowArray();
         //var selection = vis.data(items, vs.models.DataSource.key);
         //console.log(selection);
