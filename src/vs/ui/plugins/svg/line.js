@@ -77,14 +77,6 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
         vis.attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
 
-        var xy = [];
-        for (var i = 0; i < data.ncols; i++) {
-            var xytumor = [];
-            for (var j = 0; j < data.nrows; j++) {
-                xytumor.push({x: data.rows[0].d[j], y: data.vals[0].d[(i * 1000) + j]});
-            }
-            xy.push(xytumor);
-        }
 
         var lineFunc = d3.svg.line()
             .x(function (d) {
@@ -95,12 +87,24 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
             })
             .interpolate('linear');
 
-        var bisection = d3.bisector(function (d) {
+        var items = data.asDataRowArray();
+        var selection = vis.selectAll('path').data(items, vs.models.DataSource.key);
+        selection.enter()
+            .append('path')
+            .attr('d', lineFunc(this))
+            .attr('stroke', colorOption[0])
+            .attr("stroke-width", strokeThickness)
+            .attr("id", 'tag' + categories[0])
+            .attr('fill', 'none');
+
+        selection.exit()
+            .remove();
+        /*var bisection = d3.bisector(function (d) {
             return d.x;
-        }).left;
+        }).left;*/
 
 
-        xy.forEach(function (d, i) {
+        /*xy.forEach(function (d, i) {
             vis.append('path')
                 .attr('d', lineFunc(d))
                 .attr('stroke', colorOption[i])
@@ -127,9 +131,8 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
             d.sort(function (a, b) {
                 return a.x - b.x;
-            });*/
+            });
         });
-        /*
         var foci = [];
 
         for (var i = 0; i < xy.length; i++) {
