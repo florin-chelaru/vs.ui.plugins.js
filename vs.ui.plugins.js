@@ -459,7 +459,9 @@ vs.ui.plugins.svg.Line = function(){
 
 goog.inherits(vs.ui.plugins.svg.Line, vs.ui.svg.SvgVis);
 
-
+/**
+ * @type {Object.<string, vs.ui.Setting>}
+ */
 vs.ui.plugins.svg.Line.Settings = u.extend({}, vs.ui.VisHandler.Settings, {
     'rows': vs.ui.Setting.PredefinedSettings['rows'],
     'vals': vs.ui.Setting.PredefinedSettings['vals'],
@@ -477,6 +479,9 @@ vs.ui.plugins.svg.Line.Settings = u.extend({}, vs.ui.VisHandler.Settings, {
     'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness']
 });
 
+Object.defineProperties(vs.ui.plugins.svg.Line.prototype, {
+    'settings': { get: /** @type {function (this:vs.ui.plugins.svg.Line)} */ (function() { return vs.ui.plugins.svg.Line.Settings; })}
+});
 /**
  * @override
  * @returns(Promise)
