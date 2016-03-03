@@ -519,17 +519,22 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                 .attr('class', 'viewport');
         }
 
-        console.log(data.rows[0].d[0]);
-        //var items = data.asDataRowArray();
-        //var selection = vis.data(items, vs.models.DataSource.key);
-        //console.log(selection);
-        /*
+        var xy = [];
+        for (var i = 0; i < data.ncols; i++) {
+            var xytumor = [];
+            for (var j = 0; j < data.nrows; j++) {
+                xytumor.push({x: data.rows[0].d[j], y: data.vals[0].d[(i * 1000) + j]});
+            }
+            xy.push(xytumor);
+        }
+
+
         var lineFunc = d3.svg.line()
             .x(function (d) {
-                return xRange(d.x);
+                return xScale(d.x);
             })
             .y(function (d) {
-                return yRange(d.y);
+                return yScale(d.y);
             })
             .interpolate('linear');
 
@@ -567,7 +572,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                 return a.x - b.x;
             });
         });
-
+        /*
         var foci = [];
 
         for (var i = 0; i < xy.length; i++) {
