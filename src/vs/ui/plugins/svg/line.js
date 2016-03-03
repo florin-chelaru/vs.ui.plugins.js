@@ -104,12 +104,12 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
             vis.append('path')
                 .attr('d', lineFunc(d))
                 .attr('stroke', colorOption[i])
-                .attr("stroke-width", 2)
+                .attr("stroke-width", strokeThickness)
                 .attr("id", 'tag' + categories[i])
                 .attr('fill', 'none');
 
             // Add the Legend
-            vis.append('text')
+            /*vis.append('text')
                 .attr("x", 80 + 80 * i)
                 .attr("y", 550)
                 .attr("class", "legend")
@@ -127,7 +127,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
             d.sort(function (a, b) {
                 return a.x - b.x;
-            });
+            });*/
         });
         /*
         var foci = [];
@@ -173,8 +173,6 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                     foci[i].select("text").text(d2.x + ", " + d2.y);
                 });
             });*/
-
-        vis.exit().remove();
 
         resolve();
     }).then(function(){
