@@ -77,8 +77,8 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                 .attr('class', 'viewport');
         }
 
-        var items = data.asDataRowArray();
-        console.log(items);
+        //var items = data.asDataRowArray();
+        console.log(data);
         /*
         var lineFunc = d3.svg.line()
             .x(function (d) {
