@@ -77,7 +77,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
         vis.attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
 
-
+        /*
         var lineFunc = d3.svg.line()
             .x(function (d) {
                 return xScale(parseFloat(d.info(row)));
@@ -86,12 +86,21 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                 return yScale(d.val(cols[0], valsLabel));
             })
             .interpolate('linear');
+        */
+
 
         var items = data.asDataRowArray();
         var selection = vis.selectAll('path').data(items, vs.models.DataSource.key);
         selection.enter()
             .append('path')
-            .attr('d', function(d){lineFunc(d);})
+            .attr('d', d3.svg.line()
+                .x(function (d) {
+                    return xScale(parseFloat(d.info(row)));
+                })
+                .y(function (d) {
+                    return yScale(d.val(cols[0], valsLabel));
+                })
+                .interpolate('linear'))
             .attr('stroke', colorOption[0])
             .attr("stroke-width", strokeThickness)
             .attr("id", 'tag' + categories[0])
