@@ -495,15 +495,8 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
         var minX = 95741;
         var maxX = 601592;
         var categories = ["tumor", "healthy"];
-        /*
-        var xy = [];
-        for (var i = 0; i < data.ncols; i++) {
-            var xytumor = [];
-            for (var j = 0; j < data.nrows; j++) {
-                xytumor.push({x: data.rows[0].d[j], y: data.vals[0].d[(i * 1000) + j]});
-            }
-            xy.push(xytumor);
-        }*/
+
+        var data = self.data;
 
         var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
         var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
@@ -526,43 +519,9 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                 .attr('class', 'viewport');
         }
 
-        vis
-            .attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
+        var items = data.asDataRowArray();
+        console.log(items);
         /*
-// set up xrange to scale with the data we have
-            xRange = d3.scale.linear().range([MARGINS.left, WIDTH - MARGINS.right]).domain([d3.min(xy[0], function (d) {
-                return d.x;
-            }), d3.max(xy[0], function (d) {
-                return d.x;
-            })]),
-
-// set up y range to scale with the data we have
-            yRange = d3.scale.linear().range([HEIGHT - MARGINS.top, MARGINS.bottom]).domain([d3.min(xy[0], function (d) {
-                return d.y;
-            }), d3.max(xy[0], function (d) {
-                return d.y;
-            })]),
-
-// Scaling axis and determing space of tickSize
-            xAxis = d3.svg.axis()
-                .scale(xRange)
-                .tickSize(5),
-            yAxis = d3.svg.axis()
-                .scale(yRange)
-                .tickSize(5)
-                // Put the ticks on the left side
-                .orient('left');*/
-        /*
-        vis.append('g')
-            .attr('class', 'x axis')
-            .attr('transform', 'translate(0,' + (HEIGHT - MARGINS.bottom) + ')')
-            .call(xAxis);
-
-        vis.append('g')
-            .attr('class', 'y axis')
-            .attr('transform', 'translate(' + (MARGINS.left) + ',0)')
-            .call(yAxis);
-
         var lineFunc = d3.svg.line()
             .x(function (d) {
                 return xRange(d.x);
