@@ -86,7 +86,6 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
             xy.push(xytumor);
         }
 
-
         var lineFunc = d3.svg.line()
             .x(function (d) {
                 return xScale(d.x);
@@ -174,6 +173,8 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                     foci[i].select("text").text(d2.x + ", " + d2.y);
                 });
             });*/
+
+        vis.exit().remove();
 
         resolve();
     }).then(function(){
