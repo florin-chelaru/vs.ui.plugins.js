@@ -455,10 +455,27 @@ if(COMPILED){
  */
 vs.ui.plugins.svg.Line = function(){
     vs.ui.svg.SvgVis.apply(this, arguments);
-
 };
 
 goog.inherits(vs.ui.plugins.svg.Line, vs.ui.svg.SvgVis);
+
+
+vs.ui.plugins.svg.ManhattanPlot.Settings = u.extend({}, vs.ui.VisHandler.Settings, {
+    'rows': vs.ui.Setting.PredefinedSettings['rows'],
+    'vals': vs.ui.Setting.PredefinedSettings['vals'],
+    'xBoundaries': new vs.ui.Setting({key:'xBoundaries', type:'vs.models.Boundaries', defaultValue:vs.ui.Setting.rowBoundaries, label:'x boundaries', template:'_boundaries.html'}),
+    'yBoundaries': vs.ui.Setting.PredefinedSettings['yBoundaries'],
+    'xScale': vs.ui.Setting.PredefinedSettings['xScale'],
+    'yScale': vs.ui.Setting.PredefinedSettings['yScale'],
+    'cols': vs.ui.Setting.PredefinedSettings['cols'],
+    'itemRatio': new vs.ui.Setting({'key':'itemRatio', 'type':vs.ui.Setting.Type.NUMBER, 'defaultValue': 0.015, 'label':'item ratio', 'template':'_number.html'}),
+    'fill': vs.ui.Setting.PredefinedSettings['fill'],
+    'stroke': vs.ui.Setting.PredefinedSettings['stroke'],
+    'strokeThickness': vs.ui.Setting.PredefinedSettings['strokeThickness'],
+    'selectFill': vs.ui.Setting.PredefinedSettings['selectFill'],
+    'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
+    'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness']
+});
 
 /**
  * @override
@@ -510,7 +527,8 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
         }
 
 // This is to have a selector to my svg element
-        var svg = d3.select(self.$element[0]).select('svg'),
+        var svg = d3.select(self.$element[0]).select('svg');
+        /*
 // These are variables that determine the size of my graph and margins
             WIDTH = 1000,
             HEIGHT = 500,
@@ -647,7 +665,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                     foci[i].select("text").text(d2.x + ", " + d2.y);
                 });
             });
-        
+        */
         resolve();
     }).then(function(){
         return vs.ui.svg.SvgVis.prototype.endDraw.apply(self, args);
