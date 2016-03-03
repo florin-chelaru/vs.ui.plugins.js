@@ -79,7 +79,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                 .attr('class', 'viewport');
         }
 
-        viewport
+        vis
             .attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
         /*
 // set up xrange to scale with the data we have
