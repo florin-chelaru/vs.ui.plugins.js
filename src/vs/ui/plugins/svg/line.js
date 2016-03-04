@@ -95,6 +95,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
             .attr('stroke', colorOption[0])
             .attr("stroke-width", strokeThickness)
             .attr("id", 'tag' + categories[0])
+            .attr('class','vs-item')
             .attr('fill', 'none');
         /*var selection = vis.select('path').data(items, vs.models.DataSource.key);
         selection.enter()
