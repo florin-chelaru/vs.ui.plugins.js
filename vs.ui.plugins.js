@@ -532,9 +532,9 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
 
         var items = data.asDataRowArray();
-        var selection = vis.selectAll('path').data(items, vs.models.DataSource.key);
+        var selection = vis.select('path').data(items, vs.models.DataSource.key);
         selection.enter()
-            //.append('path')
+            .append('path')
             .attr('d', d3.svg.line()
                 .x(function (d) {
                     return xScale(parseFloat(d.info(row)));
