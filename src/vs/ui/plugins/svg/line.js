@@ -96,6 +96,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
             .attr("id", 'tag' + categories[0])
             .attr('fill', 'none');
 
+        vis.selectAll('path').remove();
         //selection.remove();
         /*
         selection.enter()
