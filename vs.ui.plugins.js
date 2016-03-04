@@ -531,9 +531,9 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
 
         var items = data.asDataRowArray();
+        var selection = vis.selectAll('path').data(items);
 
-        vis.selectAll('path').data(items)
-            .enter()
+        selection.enter()
             .append('path')
             .attr('d', function(d){return lineFunc(d);})
             .attr('stroke', colorOption[0])
@@ -541,7 +541,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
             .attr("id", 'tag' + categories[0])
             .attr('fill', 'none');
 
-        vis.exit().remove();
+        selection.exit().remove();
         /*var selection = vis.select('path').data(items, vs.models.DataSource.key);
         selection.enter()
             .append('path')
