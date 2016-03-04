@@ -532,8 +532,9 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
         var items = data.asDataRowArray();
 
-        vis.append('path')
-            .attr('d', lineFunc(items))
+        vis.selectAll('path').data(items)
+            .append('path')
+            .attr('d', function(d){return lineFunc(d);})
             .attr('stroke', colorOption[0])
             .attr("stroke-width", strokeThickness)
             .attr("id", 'tag' + categories[0])
