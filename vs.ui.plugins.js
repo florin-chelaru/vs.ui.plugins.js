@@ -535,31 +535,14 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
         selection.enter()
             .append('path')
-            .attr('d', function(d){return lineFunc(d);})
+            .attr('d', lineFunc(items))
             .attr('stroke', colorOption[0])
             .attr("stroke-width", strokeThickness)
             .attr("id", 'tag' + categories[0])
             .attr('fill', 'none');
 
         selection.exit().remove();
-        /*var selection = vis.select('path').data(items, vs.models.DataSource.key);
-        selection.enter()
-            .append('path')
-            .attr('d', d3.svg.line()
-                .x(function (d) {
-                    return xScale(parseFloat(d.info(row)));
-                })
-                .y(function (d) {
-                    return yScale(d.val(cols[0], valsLabel));
-                })
-                .interpolate('linear'))
-            .attr('stroke', colorOption[0])
-            .attr("stroke-width", strokeThickness)
-            .attr("id", 'tag' + categories[0])
-            .attr('fill', 'none');
 
-        selection.exit()
-            .remove();*/
         /*var bisection = d3.bisector(function (d) {
             return d.x;
         }).left;*/
