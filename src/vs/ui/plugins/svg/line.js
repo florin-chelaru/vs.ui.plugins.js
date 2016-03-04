@@ -89,7 +89,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
 
         var items = data.asDataRowArray();
-        var selection = vis.select('path').data([0]);
+        var selection = vis.selectAll('path').data([0]);
         selection.enter()
             .append('path')
             .attr('d', lineFunc(items))
