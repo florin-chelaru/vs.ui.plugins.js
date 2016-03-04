@@ -531,11 +531,11 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
 
         var items = data.asDataRowArray();
-        var selection = vis.selectAll('path').data(items);
+        var selection = vis.selectAll('path').data(items, vs.models.DataSource.key);
 
         selection.enter()
             .append('path')
-            //.attr('d', lineFunc(items))
+            .attr('d', lineFunc(items))
             .attr('stroke', colorOption[0])
             .attr("stroke-width", strokeThickness)
             .attr("id", 'tag' + categories[0])
