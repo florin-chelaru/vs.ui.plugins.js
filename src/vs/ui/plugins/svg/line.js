@@ -89,8 +89,15 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
 
         var items = data.asDataRowArray();
-        var selection = vis.select('path');
+        var selection = vis.append('path')
+            .attr('d', lineFunc(items))
+            .attr('stroke', colorOption[0])
+            .attr("stroke-width", strokeThickness)
+            .attr("id", 'tag' + categories[0])
+            .attr('fill', 'none');
 
+        selection.remove();
+        /*
         selection.enter()
             .append('path')
             .attr('d', lineFunc(items))
@@ -100,7 +107,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
             .attr('fill', 'none');
 
         selection.exit().remove();
-
+        */
         /*var bisection = d3.bisector(function (d) {
             return d.x;
         }).left;*/
