@@ -4,11 +4,13 @@
  * Time: 12:19 PM
  */
 
+//region goog...
 goog.provide('vs.ui.plugins.canvas.ManhattanPlot');
 
 if (COMPILED) {
   goog.require('vs.ui');
 }
+//endregion
 
 // Because vs.models.DataSource is defined in another library (vis.js), there is no way for the Google Closure compiler
 // to know the names of the private variables of that class. Therefore, when overriding this class, we need to declare
@@ -38,6 +40,7 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
 
   goog.inherits(ManhattanPlot, vs.ui.canvas.CanvasVis);
 
+  //region Constants
   /**
    * @type {Object.<string, vs.ui.Setting>}
    */
@@ -58,11 +61,15 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
     'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
     'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness']
   });
+  //endregion
 
+  //region Properties
   Object.defineProperties(ManhattanPlot.prototype, {
     'settings': { get: /** @type {function (this:ManhattanPlot)} */ (function() { return ManhattanPlot.Settings; })}
   });
+  //endregion
 
+  //region Methods
   ManhattanPlot.prototype.beginDraw = function() {
     var self = this;
     var args = arguments;
@@ -219,6 +226,7 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
     var context = canvas.getContext('2d');
     vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, selectFill, selectStroke, selectStrokeThickness);*/
   };
+  //endregion
 
   return ManhattanPlot;
 })();

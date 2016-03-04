@@ -4,15 +4,13 @@
  * Time: 12:19 PM
  */
 
+//region goog...
 goog.provide('vs.ui.plugins.svg.ManhattanPlot');
 
 if (COMPILED) {
   goog.require('vs.ui');
 }
-/*
-goog.require('vs.models.DataRow');
-goog.require('vs.ui.svg.SvgVis');
-*/
+//endregion
 
 /**
  * @constructor
@@ -24,6 +22,7 @@ vs.ui.plugins.svg.ManhattanPlot = function() {
 
 goog.inherits(vs.ui.plugins.svg.ManhattanPlot, vs.ui.svg.SvgVis);
 
+//region Constants
 /**
  * @type {Object.<string, vs.ui.Setting>}
  */
@@ -44,11 +43,15 @@ vs.ui.plugins.svg.ManhattanPlot.Settings = u.extend({}, vs.ui.VisHandler.Setting
   'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
   'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness']
 });
+//endregion
 
+//region Properties
 Object.defineProperties(vs.ui.plugins.svg.ManhattanPlot.prototype, {
   'settings': { get: /** @type {function (this:vs.ui.plugins.svg.ManhattanPlot)} */ (function() { return vs.ui.plugins.svg.ManhattanPlot.Settings; })}
 });
+//endregion
 
+//region Methods
 /**
  * @override
  */
@@ -145,3 +148,4 @@ vs.ui.plugins.svg.ManhattanPlot.prototype.unhighlightItem = function(viewport, d
     .style('stroke-width', strokeThickness)
     .style('fill', fill);*/
 };
+//endregion

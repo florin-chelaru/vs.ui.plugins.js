@@ -35,11 +35,13 @@ if (COMPILED) {
 
 
 
+//region goog...
 goog.provide('vs.ui.plugins.canvas.ManhattanPlot');
 
 if (COMPILED) {
   goog.require('vs.ui');
 }
+//endregion
 
 // Because vs.models.DataSource is defined in another library (vis.js), there is no way for the Google Closure compiler
 // to know the names of the private variables of that class. Therefore, when overriding this class, we need to declare
@@ -69,6 +71,7 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
 
   goog.inherits(ManhattanPlot, vs.ui.canvas.CanvasVis);
 
+  //region Constants
   /**
    * @type {Object.<string, vs.ui.Setting>}
    */
@@ -89,11 +92,15 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
     'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
     'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness']
   });
+  //endregion
 
+  //region Properties
   Object.defineProperties(ManhattanPlot.prototype, {
     'settings': { get: /** @type {function (this:ManhattanPlot)} */ (function() { return ManhattanPlot.Settings; })}
   });
+  //endregion
 
+  //region Methods
   ManhattanPlot.prototype.beginDraw = function() {
     var self = this;
     var args = arguments;
@@ -250,152 +257,10 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
     var context = canvas.getContext('2d');
     vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, selectFill, selectStroke, selectStrokeThickness);*/
   };
+  //endregion
 
   return ManhattanPlot;
 })();
-
-
-goog.provide('vs.ui.plugins.svg.ManhattanPlot');
-
-if (COMPILED) {
-  goog.require('vs.ui');
-}
-/*
-goog.require('vs.models.DataRow');
-goog.require('vs.ui.svg.SvgVis');
-*/
-
-/**
- * @constructor
- * @extends vs.ui.svg.SvgVis
- */
-vs.ui.plugins.svg.ManhattanPlot = function() {
-  vs.ui.svg.SvgVis.apply(this, arguments);
-};
-
-goog.inherits(vs.ui.plugins.svg.ManhattanPlot, vs.ui.svg.SvgVis);
-
-/**
- * @type {Object.<string, vs.ui.Setting>}
- */
-vs.ui.plugins.svg.ManhattanPlot.Settings = u.extend({}, vs.ui.VisHandler.Settings, {
-  'xVal': vs.ui.Setting.PredefinedSettings['xVal'],
-  'yVal': vs.ui.Setting.PredefinedSettings['yVal'],
-  'xBoundaries': vs.ui.Setting.PredefinedSettings['xBoundaries'],
-  'yBoundaries': vs.ui.Setting.PredefinedSettings['yBoundaries'],
-  'xScale': vs.ui.Setting.PredefinedSettings['xScale'],
-  'yScale': vs.ui.Setting.PredefinedSettings['yScale'],
-  'cols': vs.ui.Setting.PredefinedSettings['cols'],
-  'itemRatio': new vs.ui.Setting({'key':'itemRatio', 'type':vs.ui.Setting.Type.NUMBER, 'defaultValue': 0.015, 'label':'item ratio', 'template':'_number.html'}),
-  'fills': vs.ui.Setting.PredefinedSettings['fills'],
-  'fillOpacity': vs.ui.Setting.PredefinedSettings['fillOpacity'],
-  'strokes': vs.ui.Setting.PredefinedSettings['strokes'],
-  'strokeThickness': vs.ui.Setting.PredefinedSettings['strokeThickness'],
-  'selectFill': vs.ui.Setting.PredefinedSettings['selectFill'],
-  'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
-  'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness']
-});
-
-Object.defineProperties(vs.ui.plugins.svg.ManhattanPlot.prototype, {
-  'settings': { get: /** @type {function (this:vs.ui.plugins.svg.ManhattanPlot)} */ (function() { return vs.ui.plugins.svg.ManhattanPlot.Settings; })}
-});
-
-/**
- * @override
- */
-vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw = function() {
-  var self = this;
-  var args = arguments;
-  return new Promise(function(resolve, reject) {
-    /** @type {Array.<vs.models.DataSource>} */
-    var data = self.data;
-
-    var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
-    data = data.filter(function(d) { return cols.indexOf(d.id) >= 0; });
-
-    // Nothing to draw
-    if (!data.length || !vs.models.DataSource.allDataIsReady(data)) { resolve(); return; }
-
-    var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
-    var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
-    var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
-
-    var x = /** @type {string} */ (self.optionValue('xVal'));
-    var y = /** @type {string} */ (self.optionValue('yVal'));
-
-    var fills = /** @type {function(*):string} */ (self.optionValue('fills'));
-    var fillOpacity = /** @type {number} */ (self.optionValue('fillOpacity'));
-    var strokes = /** @type {function(*):string} */ (self.optionValue('strokes'));
-    var strokeThickness = /** @type {number} */ (self.optionValue('strokeThickness'));
-    var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
-    var width = /** @type {number} */ (self.optionValue('width'));
-    var height = /** @type {number} */ (self.optionValue('height'));
-    var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
-
-    var svg = d3.select(self.$element[0]).select('svg');
-    var viewport = svg.select('.viewport');
-    if (viewport.empty()) {
-      viewport = svg.append('g')
-        .attr('class', 'viewport');
-    }
-    viewport
-      .attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
-
-    var items = data.map(function(d) { return d.d; }).reduce(function(arr1, arr2) { return arr1.concat(arr2); });
-    var selection = viewport.selectAll('circle').data(items, JSON.stringify);
-
-    selection.enter()
-      .append('circle')
-      .attr('class', 'vs-item');
-
-    selection
-      .attr('r', itemRadius)
-      .attr('cx', function(d) { return xScale(parseFloat(d[x])); })
-      .attr('cy', function(d) { return yScale(parseFloat(d[y])); })
-      .attr('fill', function(d) { return u.hex2rgba(fills(d['__d__']), fillOpacity); })
-      .style('stroke', function(d) { return strokes([d['__d__']]); })
-      .style('stroke-width', strokeThickness);
-
-    selection.exit()
-      .remove();
-
-    resolve();
-  }).then(function() {
-    return vs.ui.svg.SvgVis.prototype.endDraw.apply(self, args);
-  });
-};
-
-/**
- * @param {HTMLElement} viewport Can be canvas, svg, etc.
- * @param {Object} d
- */
-vs.ui.plugins.svg.ManhattanPlot.prototype.highlightItem = function(viewport, d) {
-  /*var v = d3.select(viewport);
-  var selectFill = /!** @type {string} *!/ (this.optionValue('selectFill'));
-  var selectStroke = /!** @type {string} *!/ (this.optionValue('selectStroke'));
-  var selectStrokeThickness = /!** @type {number} *!/ (this.optionValue('selectStrokeThickness'));
-  var items = v.selectAll('.vs-item').data([d], vs.models.DataSource.key);
-  items
-    .style('stroke', selectStroke)
-    .style('stroke-width', selectStrokeThickness)
-    .style('fill', selectFill);
-  $(items[0]).appendTo($(viewport));*/
-};
-
-/**
- * @param {HTMLElement} viewport Can be canvas, svg, etc.
- * @param {Object} d
- */
-vs.ui.plugins.svg.ManhattanPlot.prototype.unhighlightItem = function(viewport, d) {
-  /*var v = d3.select(viewport);
-  var fill = /!** @type {string} *!/ (this.optionValue('fill'));
-  var stroke = /!** @type {string} *!/ (this.optionValue('stroke'));
-  var strokeThickness = /!** @type {number} *!/ (this.optionValue('strokeThickness'));
-  v.selectAll('.vs-item').data([d], vs.models.DataSource.key)
-    .style('stroke', stroke)
-    .style('stroke-width', strokeThickness)
-    .style('fill', fill);*/
-};
 
 
 //region goog...
@@ -516,10 +381,10 @@ vs.ui.plugins.svg.ScatterPlot = (function() {
       var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
 
       var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
+      var yBoundaries = /** @type {vs.models.Boundaries} */ (self.optionValue('yBoundaries'));
       var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
       var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
 
-      var xVal = /** @type {string} */ (self.optionValue('xVal'));
       var yVal = /** @type {string} */ (self.optionValue('yVal'));
 
       var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
@@ -553,10 +418,10 @@ vs.ui.plugins.svg.ScatterPlot = (function() {
 
       selection
         .attr('r', itemRadius)
-        .attr('cx', function(d) { return xScale(d[xCol][yVal]); })
-        .attr('cy', function(d) { return yScale(d[yCol][yVal]); })
-        .attr('fill', fill)
-        .style('stroke', stroke)
+        .attr('cx', function(d) { return xScale(d[xCol] != undefined ? d[xCol][yVal] : yBoundaries.min); })
+        .attr('cy', function(d) { return yScale(d[yCol] != undefined ? d[yCol][yVal] : yBoundaries.min); })
+        .attr('fill', function(d) { return d[xCol] == undefined || d[yCol] == undefined ? 'rgba(170,170,170,0.5)' : fill; })
+        .style('stroke', function(d) { return d[xCol] == undefined || d[yCol] == undefined ? 'rgb(170,170,170)' : stroke; })
         .style('stroke-width', strokeThickness);
 
       selection.exit()
@@ -610,8 +475,8 @@ vs.ui.plugins.svg.ScatterPlot = (function() {
         var data = cols.map(function(col) { return self.data[u.array.indexOf(self.data, function(d) {return d.id == col;})]; });
         if (data.length < 2) { reject('Scatter plot needs two columns of data, but only received ' + cols.length); return; }
 
-        var mergeCols = /** @type {function(vs.models.DataSource, vs.models.DataSource, string):vs.models.DataSource} */ (self.optionValue('mergeCols'));
-        self[_merged] = mergeCols(data[0], data[1], xVal);
+        var mergeCols = /** @type {function(string, Array.<vs.models.DataSource>):vs.models.DataSource} */ (self.optionValue('mergeCols'));
+        self[_merged] = mergeCols(xVal, data);
         resolve();
       });
     });
@@ -622,6 +487,413 @@ vs.ui.plugins.svg.ScatterPlot = (function() {
 })();
 
 
+//region goog...
+goog.provide('vs.ui.plugins.svg.Heatmap');
+
+if (COMPILED) {
+  goog.require('vs.ui');
+}
+//endregion
+
+// Because vs.ui.svg.SvgVis is defined in another library (vis.js), there is no way for the Google Closure compiler
+// to know the names of the private variables of that class. Therefore, when overriding this class, we need to declare
+// private variables in a private scope (closure), using Symbols (ES6), so we don't accidentally replace existing
+// private members.
+
+/**
+ * @constructor
+ * @extends vs.ui.svg.SvgVis
+ */
+vs.ui.plugins.svg.Heatmap = (function() {
+
+  var _merged = Symbol('_merged');
+
+  /**
+   * @constructor
+   * @extends vs.ui.svg.SvgVis
+   */
+  var Heatmap = function() {
+    vs.ui.svg.SvgVis.apply(this, arguments);
+
+    /**
+     * Merged data source for the rows of the heatmap, from the data sources corresponding to each row respectively
+     * @type {null|vs.models.DataSource}
+     * @private
+     */
+    this[_merged] = null;
+
+    var self = this;
+    // Options changed
+    this.$scope.$watch(
+      function(){ return { 'cols': self.options['cols'], 'xVal': self.options['xVal'], 'mergeCols': self.options['mergeCols'] }; },
+      function() { self.schedulePreProcessData().then(function() { self.scheduleRedraw(); }); },
+      true);
+  };
+
+  goog.inherits(Heatmap, vs.ui.svg.SvgVis);
+
+
+  //region Constants
+  /**
+   * @type {Object.<string, vs.ui.Setting>}
+   */
+  Heatmap.Settings = u.extend({}, vs.ui.VisHandler.Settings, {
+    'xVal': vs.ui.Setting.PredefinedSettings['xVal'],
+    'yVal': vs.ui.Setting.PredefinedSettings['yVal'],
+    'mergeCols': vs.ui.Setting.PredefinedSettings['mergeCols'],
+    'xBoundaries': vs.ui.Setting.PredefinedSettings['xBoundaries'],
+    'yBoundaries': vs.ui.Setting.PredefinedSettings['yBoundaries'],
+    'cols': vs.ui.Setting.PredefinedSettings['cols'],
+    'fill': vs.ui.Setting.PredefinedSettings['fill'],
+    'stroke': vs.ui.Setting.PredefinedSettings['stroke'],
+    'strokeThickness': vs.ui.Setting.PredefinedSettings['strokeThickness'],
+    'selectFill': vs.ui.Setting.PredefinedSettings['selectFill'],
+    'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
+    'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness']
+  });
+  //endregion
+
+  //region Properties
+  Object.defineProperties(Heatmap.prototype, {
+    'settings': { get: /** @type {function (this:Heatmap)} */ (function() { return Heatmap.Settings; })}
+  });
+  //endregion
+
+
+  //region Methods
+  /**
+   * @override
+   */
+  Heatmap.prototype.endDraw = function() {
+    var self = this;
+    var args = arguments;
+    return new Promise(function(resolve, reject) {
+      /** @type {vs.models.DataSource} */
+      var data = self[_merged];
+
+      // Nothing to draw
+      if (!data || !data.d.length) { resolve(); return; }
+
+      var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
+      var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
+      var yVal = /** @type {string} */ (self.optionValue('yVal'));
+      var width = /** @type {number} */ (self.optionValue('width'));
+      var height = /** @type {number} */ (self.optionValue('height'));
+      var yBoundaries = /** @type {vs.models.Boundaries} */ (self.optionValue('yBoundaries'));
+      var fill = /** @type {string} */ (self.optionValue('fill'));
+      var stroke = /** @type {string} */ (self.optionValue('stroke'));
+      var strokeThickness = /** @type {number} */ (self.optionValue('strokeThickness'));
+
+      var xScale = d3.scale.linear()
+        .domain([0, data.d.length])
+        .range([0, width - margins.left - margins.right]);
+
+      var yScale = d3.scale.linear()
+        .domain([0, cols.length])
+        .range([0, height - margins.top - margins.bottom]);
+
+      var colorScale = d3.scale.linear()
+        .domain([yBoundaries.min, yBoundaries.max])
+        .range(['#ffffff', fill]);
+
+      var svg = d3.select(self.$element[0]).select('svg');
+
+      var viewport = svg.select('.viewport');
+      if (viewport.empty()) {
+        viewport = svg.append('g')
+          .attr('class', 'viewport');
+      }
+      viewport
+        .attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
+
+      var items = data.d;
+      var selection = viewport.selectAll('g').data(items, JSON.stringify);
+
+      selection.enter()
+        .append('g')
+        .attr('class', 'vs-item');
+
+      selection
+        .attr('transform', function(d, i) { return 'translate(' + xScale(i) + ',0)'; })
+        .each(function(d, i) {
+          var cells = d3.select(this).selectAll('rect').data(cols.map(function(col) { return d[col]; }));
+          cells
+            .enter()
+            .append('rect')
+            .attr('class', 'vs-cell');
+          cells
+            .attr('y', function(col, j) { return yScale(j); })
+            //.attr('y', yScale(i))
+            .attr('x', 0)
+            .attr('width', xScale(1))
+            .attr('height', yScale(1))
+            .attr('fill', function(c) { return c ? colorScale(c[yVal]) : '#aaaaaa'; });
+        });
+
+      selection.exit()
+        .remove();
+
+      resolve();
+    }).then(function() {
+      return vs.ui.svg.SvgVis.prototype.endDraw.apply(self, args);
+    });
+  };
+
+  /**
+   * @param {HTMLElement} viewport Can be canvas, svg, etc.
+   * @param {Object} d
+   */
+  Heatmap.prototype.highlightItem = function(viewport, d) {
+    /*var v = d3.select(viewport);
+    var selectFill = /!** @type {string} *!/ (this.optionValue('selectFill'));
+    var selectStroke = /!** @type {string} *!/ (this.optionValue('selectStroke'));
+    var selectStrokeThickness = /!** @type {number} *!/ (this.optionValue('selectStrokeThickness'));
+    var valsLabel = /!** @type {string} *!/ (this.optionValue('vals'));
+    var yBoundaries = /!** @type {vs.models.Boundaries} *!/ (this.optionValue('yBoundaries'));
+
+    var margins = /!** @type {vs.models.Margins} *!/ (this.optionValue('margins'));
+    var width = /!** @type {number} *!/ (this.optionValue('width'));
+    var height = /!** @type {number} *!/ (this.optionValue('height'));
+
+    var yScale = d3.scale.linear()
+      .domain([0, d.data.nrows])
+      .range([0, height - margins.top - margins.bottom]);
+
+    var colorScale = d3.scale.linear()
+      .domain([yBoundaries.min, yBoundaries.max])
+      .range(['#ffffff', selectFill]);
+    var itemHeight = (height - margins.top - margins.bottom) / d.data.nrows;
+
+    var minHeight = Math.max(itemHeight, 25); // a selected row will increase size to this height if necessary
+    var heightScale = minHeight / itemHeight;
+    var dif = minHeight - itemHeight;
+
+    var items = v.selectAll('.vs-item').data([d], vs.models.DataSource.key);
+    items
+      .each(function() {
+        var item = d3.select(this);
+        item.selectAll('.vs-cell')
+          .attr('fill', function(col) { return colorScale(d.val(col, valsLabel)); });
+      });
+    v.append('rect')
+      .attr('class', 'vs-item-border')
+      .attr('x', -selectStrokeThickness)
+      .attr('y', d.index * itemHeight - selectStrokeThickness - 0.5 * dif)
+      .attr('width', width - margins.left - margins.right + 2 * selectStrokeThickness)
+      .attr('height', dif + itemHeight + 2 * selectStrokeThickness)
+      .style('stroke', selectStroke)
+      .style('stroke-width', selectStrokeThickness)
+      .style('fill', 'none');
+    items
+      .attr('transform', function(d, i) {
+        return 'translate(0, ' + (yScale(d.index) - dif * 0.5) + ') scale(1, ' + heightScale + ')';
+      });
+    $(items[0]).appendTo($(viewport));*/
+  };
+
+  /**
+   * @param {HTMLElement} viewport Can be canvas, svg, etc.
+   * @param {Object} d
+   */
+  Heatmap.prototype.unhighlightItem = function(viewport, d) {
+    /*var v = d3.select(viewport);
+    var fill = /!** @type {string} *!/ (this.optionValue('fill'));
+    var yBoundaries = /!** @type {vs.models.Boundaries} *!/ (this.optionValue('yBoundaries'));
+    var valsLabel = /!** @type {string} *!/ (this.optionValue('vals'));
+    var margins = /!** @type {vs.models.Margins} *!/ (this.optionValue('margins'));
+    var width = /!** @type {number} *!/ (this.optionValue('width'));
+    var height = /!** @type {number} *!/ (this.optionValue('height'));
+    var yScale = d3.scale.linear()
+      .domain([0, d.data.nrows])
+      .range([0, height - margins.top - margins.bottom]);
+    var colorScale = d3.scale.linear()
+      .domain([yBoundaries.min, yBoundaries.max])
+      .range(['#ffffff', fill]);
+    v.selectAll('.vs-item').data([d], vs.models.DataSource.key)
+      .each(function() {
+        var item = d3.select(this);
+        item.selectAll('.vs-cell')
+          .attr('fill', function(col) { return colorScale(d.val(col, valsLabel)); });
+      })
+      .attr('transform', function(d, i) { return 'translate(0,' + yScale(d.index) + ')'; });
+    v.selectAll('.vs-item-border').remove();*/
+  };
+
+  Heatmap.prototype.preProcessData = function() {
+    var self = this;
+    return new Promise(function(resolve, reject) {
+      Promise.all(self.data.map(function(d) { return d.ready; })).then(function() {
+        var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
+        var xVal = /** @type {string} */ (self.optionValue('xVal'));
+
+        var data = cols.map(function(col) { return self.data[u.array.indexOf(self.data, function(d) {return d.id == col;})]; });
+        if (data.length < 1) {
+          self[_merged] = null;
+          resolve();
+        }
+        if (data.length == 1) {
+          self[_merged] = data[0];
+          resolve();
+        }
+
+        var mergeCols = /** @type {function(string, Array.<vs.models.DataSource>):vs.models.DataSource} */ (self.optionValue('mergeCols'));
+
+        self[_merged] = mergeCols(xVal, data);
+        resolve();
+      });
+    });
+  };
+  //endregion
+
+  return Heatmap;
+})();
+
+
+//region goog...
+goog.provide('vs.ui.plugins.svg.ManhattanPlot');
+
+if (COMPILED) {
+  goog.require('vs.ui');
+}
+//endregion
+
+/**
+ * @constructor
+ * @extends vs.ui.svg.SvgVis
+ */
+vs.ui.plugins.svg.ManhattanPlot = function() {
+  vs.ui.svg.SvgVis.apply(this, arguments);
+};
+
+goog.inherits(vs.ui.plugins.svg.ManhattanPlot, vs.ui.svg.SvgVis);
+
+//region Constants
+/**
+ * @type {Object.<string, vs.ui.Setting>}
+ */
+vs.ui.plugins.svg.ManhattanPlot.Settings = u.extend({}, vs.ui.VisHandler.Settings, {
+  'xVal': vs.ui.Setting.PredefinedSettings['xVal'],
+  'yVal': vs.ui.Setting.PredefinedSettings['yVal'],
+  'xBoundaries': vs.ui.Setting.PredefinedSettings['xBoundaries'],
+  'yBoundaries': vs.ui.Setting.PredefinedSettings['yBoundaries'],
+  'xScale': vs.ui.Setting.PredefinedSettings['xScale'],
+  'yScale': vs.ui.Setting.PredefinedSettings['yScale'],
+  'cols': vs.ui.Setting.PredefinedSettings['cols'],
+  'itemRatio': new vs.ui.Setting({'key':'itemRatio', 'type':vs.ui.Setting.Type.NUMBER, 'defaultValue': 0.015, 'label':'item ratio', 'template':'_number.html'}),
+  'fills': vs.ui.Setting.PredefinedSettings['fills'],
+  'fillOpacity': vs.ui.Setting.PredefinedSettings['fillOpacity'],
+  'strokes': vs.ui.Setting.PredefinedSettings['strokes'],
+  'strokeThickness': vs.ui.Setting.PredefinedSettings['strokeThickness'],
+  'selectFill': vs.ui.Setting.PredefinedSettings['selectFill'],
+  'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
+  'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness']
+});
+//endregion
+
+//region Properties
+Object.defineProperties(vs.ui.plugins.svg.ManhattanPlot.prototype, {
+  'settings': { get: /** @type {function (this:vs.ui.plugins.svg.ManhattanPlot)} */ (function() { return vs.ui.plugins.svg.ManhattanPlot.Settings; })}
+});
+//endregion
+
+//region Methods
+/**
+ * @override
+ */
+vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw = function() {
+  var self = this;
+  var args = arguments;
+  return new Promise(function(resolve, reject) {
+    /** @type {Array.<vs.models.DataSource>} */
+    var data = self.data;
+
+    var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
+    data = data.filter(function(d) { return cols.indexOf(d.id) >= 0; });
+
+    // Nothing to draw
+    if (!data.length || !vs.models.DataSource.allDataIsReady(data)) { resolve(); return; }
+
+    var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
+    var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
+    var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
+
+    var x = /** @type {string} */ (self.optionValue('xVal'));
+    var y = /** @type {string} */ (self.optionValue('yVal'));
+
+    var fills = /** @type {function(*):string} */ (self.optionValue('fills'));
+    var fillOpacity = /** @type {number} */ (self.optionValue('fillOpacity'));
+    var strokes = /** @type {function(*):string} */ (self.optionValue('strokes'));
+    var strokeThickness = /** @type {number} */ (self.optionValue('strokeThickness'));
+    var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
+    var width = /** @type {number} */ (self.optionValue('width'));
+    var height = /** @type {number} */ (self.optionValue('height'));
+    var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
+
+    var svg = d3.select(self.$element[0]).select('svg');
+    var viewport = svg.select('.viewport');
+    if (viewport.empty()) {
+      viewport = svg.append('g')
+        .attr('class', 'viewport');
+    }
+    viewport
+      .attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
+
+    var items = data.map(function(d) { return d.d; }).reduce(function(arr1, arr2) { return arr1.concat(arr2); });
+    var selection = viewport.selectAll('circle').data(items, JSON.stringify);
+
+    selection.enter()
+      .append('circle')
+      .attr('class', 'vs-item');
+
+    selection
+      .attr('r', itemRadius)
+      .attr('cx', function(d) { return xScale(parseFloat(d[x])); })
+      .attr('cy', function(d) { return yScale(parseFloat(d[y])); })
+      .attr('fill', function(d) { return u.hex2rgba(fills(d['__d__']), fillOpacity); })
+      .style('stroke', function(d) { return strokes([d['__d__']]); })
+      .style('stroke-width', strokeThickness);
+
+    selection.exit()
+      .remove();
+
+    resolve();
+  }).then(function() {
+    return vs.ui.svg.SvgVis.prototype.endDraw.apply(self, args);
+  });
+};
+
+/**
+ * @param {HTMLElement} viewport Can be canvas, svg, etc.
+ * @param {Object} d
+ */
+vs.ui.plugins.svg.ManhattanPlot.prototype.highlightItem = function(viewport, d) {
+  /*var v = d3.select(viewport);
+  var selectFill = /!** @type {string} *!/ (this.optionValue('selectFill'));
+  var selectStroke = /!** @type {string} *!/ (this.optionValue('selectStroke'));
+  var selectStrokeThickness = /!** @type {number} *!/ (this.optionValue('selectStrokeThickness'));
+  var items = v.selectAll('.vs-item').data([d], vs.models.DataSource.key);
+  items
+    .style('stroke', selectStroke)
+    .style('stroke-width', selectStrokeThickness)
+    .style('fill', selectFill);
+  $(items[0]).appendTo($(viewport));*/
+};
+
+/**
+ * @param {HTMLElement} viewport Can be canvas, svg, etc.
+ * @param {Object} d
+ */
+vs.ui.plugins.svg.ManhattanPlot.prototype.unhighlightItem = function(viewport, d) {
+  /*var v = d3.select(viewport);
+  var fill = /!** @type {string} *!/ (this.optionValue('fill'));
+  var stroke = /!** @type {string} *!/ (this.optionValue('stroke'));
+  var strokeThickness = /!** @type {number} *!/ (this.optionValue('strokeThickness'));
+  v.selectAll('.vs-item').data([d], vs.models.DataSource.key)
+    .style('stroke', stroke)
+    .style('stroke-width', strokeThickness)
+    .style('fill', fill);*/
+};
+//endregion
 
 
 //region goog...
@@ -642,8 +914,8 @@ if (COMPILED) {
  * @extends vs.ui.canvas.CanvasVis
  */
 vs.ui.plugins.canvas.ScatterPlot = (function() {
-  var _quadTree = Symbol('_quadTree');
 
+  var _quadTree = Symbol('_quadTree');
   var _merged = Symbol('_merged');
 
   /**
@@ -702,6 +974,7 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
   };
   //endregion
 
+  //region Constants
   /**
    * @type {Object.<string, vs.ui.Setting>}
    */
@@ -723,11 +996,15 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
     'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
     'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness']
   });
+  //endregion
 
+  //region Properties
   Object.defineProperties(ScatterPlot.prototype, {
     'settings': { get: /** @type {function (this:ScatterPlot)} */ (function() { return ScatterPlot.Settings; })}
   });
+  //endregion
 
+  //region Methods
   ScatterPlot.prototype.beginDraw = function() {
     var self = this;
     var args = arguments;
@@ -741,6 +1018,7 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
 
         var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
         var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
+        var yBoundaries = /** @type {vs.models.Boundaries} */ (self.optionValue('yBoundaries'));
         var xVal = /** @type {string} */ (self.optionValue('xVal'));
         var yVal = /** @type {string} */ (self.optionValue('yVal'));
         var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
@@ -766,8 +1044,10 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
         w = h = itemRadius;
 
         items.forEach(function(d) {
-          var initialPoint = {'x': d[xCol][yVal], 'y': d[yCol][yVal]};
-          var point = transform.calc(initialPoint);
+          var point = transform.calc({
+            'x': d[xCol] != undefined ? d[xCol][yVal] : yBoundaries.min,
+            'y': d[yCol] != undefined ? d[yCol][yVal] : yBoundaries.min
+          });
 
           qt.insert(point.x - w, point.y - h, w * 2, h * 2, d);
         });
@@ -793,6 +1073,7 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
       var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
       var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
       var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
+      var yBoundaries = /** @type {vs.models.Boundaries} */ (self.optionValue('yBoundaries'));
 
       var xVal = /** @type {string} */ (self.optionValue('xVal'));
       var yVal = /** @type {string} */ (self.optionValue('yVal'));
@@ -830,8 +1111,13 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
       u.async.each(items, function(d) {
         return new Promise(function(drawCircleResolve, drawCircleReject) {
           setTimeout(function() {
-            var point = transform.calc({'x': d[xCol][yVal], 'y': d[yCol][yVal]});
-            vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, fill, stroke, strokeThickness);
+            var point = transform.calc({
+              'x': d[xCol] != undefined ? d[xCol][yVal] : yBoundaries.min,
+              'y': d[yCol] != undefined ? d[yCol][yVal] : yBoundaries.min
+            });
+            var f = d[xCol] == undefined || d[yCol] == undefined ? 'rgba(170,170,170,0.5)' : fill;
+            var s = d[xCol] == undefined || d[yCol] == undefined ? 'rgb(170,170,170)' : stroke;
+            vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, f, s, strokeThickness);
             drawCircleResolve();
           }, 0);
         });
@@ -895,12 +1181,13 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
         var data = cols.map(function(col) { return self.data[u.array.indexOf(self.data, function(d) {return d.id == col;})]; });
         if (data.length < 2) { reject('Scatter plot needs two columns of data, but only received ' + cols.length); return; }
 
-        var mergeCols = /** @type {function(vs.models.DataSource, vs.models.DataSource, string):vs.models.DataSource} */ (self.optionValue('mergeCols'));
-        self[_merged] = mergeCols(data[0], data[1], xVal);
+        var mergeCols = /** @type {function(string, Array.<vs.models.DataSource>):vs.models.DataSource} */ (self.optionValue('mergeCols'));
+        self[_merged] = mergeCols(xVal, data);
         resolve();
       });
     });
   };
+  //endregion
 
   return ScatterPlot;
 })();
@@ -912,4 +1199,4 @@ goog.require('vs.ui.plugins.canvas.ManhattanPlot');
 goog.require('vs.ui.plugins.canvas.ScatterPlot');
 goog.require('vs.ui.plugins.svg.ManhattanPlot');
 goog.require('vs.ui.plugins.svg.ScatterPlot');
-//goog.require('vs.ui.plugins.svg.Heatmap');
+goog.require('vs.ui.plugins.svg.Heatmap');

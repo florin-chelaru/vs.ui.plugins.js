@@ -10,3 +10,4 @@ goog.exportSymbol('vs.ui.plugins.canvas.ScatterPlot', vs.ui.plugins.canvas.Scatt
 goog.exportProperty(vs.ui.plugins.canvas.ScatterPlot.prototype, 'endDraw', vs.ui.plugins.canvas.ScatterPlot.prototype.endDraw);
 goog.exportProperty(vs.ui.plugins.canvas.ScatterPlot.prototype, 'getItemsAt', vs.ui.plugins.canvas.ScatterPlot.prototype.getItemsAt);
 goog.exportProperty(vs.ui.plugins.canvas.ScatterPlot.prototype, 'highlightItem', vs.ui.plugins.canvas.ScatterPlot.prototype.highlightItem);
+goog.exportProperty(vs.ui.plugins.canvas.ScatterPlot.prototype, 'preProcessData', vs.ui.plugins.canvas.ScatterPlot.prototype.preProcessData);

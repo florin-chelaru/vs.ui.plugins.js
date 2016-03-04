@@ -22,6 +22,9 @@ main.config(['configurationProvider', function(configuration) {
         svg: 'vs.ui.plugins.svg.ManhattanPlot',
         canvas: 'vs.ui.plugins.canvas.ManhattanPlot',
         default: 'svg'
+      },
+      heatmap: {
+        svg: 'vs.ui.plugins.svg.Heatmap'
       }
     },
     parallel: {
@@ -547,6 +550,38 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
                 }
               ]
             }
+          },
+          {
+            construct: {
+              render: 'svg',
+              type: 'heatmap'
+            },
+            options: {
+              x: 10,
+              y: 290,
+              width: 400,
+              height: 200,
+              margins: {
+                left: 10,
+                right: 10,
+                bottom: 10,
+                top: 10
+              },
+              cols: ['1jOD1q','5B0Aap','1jOD1q'],
+              xVal: 'start',
+              yVal: 'gwasPval',
+              'fill': 'rgb(30,96,212)'
+            },
+            decorators: {
+              cls: [
+                'vs-window',
+                'vs-resizable',
+                'vs-movable'
+              ],
+              elem: [
+
+              ]
+            }
           }
         ],
         data: [
@@ -587,14 +622,14 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
               }
             ],
             "d": [
-              {
+              /*{
                 "snpid": "rs114551744",
                 "chr": "chr1",
                 "start": 233430449,
                 "end": 233430449,
                 "gwasPval": 0.404408372,
                 "__d__": "5B0Aap"
-              },
+              },*/
               {
                 "snpid": "rs10752752",
                 "chr": "chr1",
@@ -1063,14 +1098,14 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
                 "gwasPval": 0.882708277,
                 "__d__": "1jOD1q"
               },
-              {
+              /*{
                 "snpid": "rs10752752",
                 "chr": "chr1",
                 "start": 233430787,
                 "end": 233430787,
                 "gwasPval": 0.382179127,
                 "__d__": "1jOD1q"
-              },
+              },*/
               {
                 "snpid": "rs186333629",
                 "chr": "chr1",

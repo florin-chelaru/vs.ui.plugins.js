@@ -22,8 +22,8 @@ if (COMPILED) {
  * @extends vs.ui.canvas.CanvasVis
  */
 vs.ui.plugins.canvas.ScatterPlot = (function() {
-  var _quadTree = Symbol('_quadTree');
 
+  var _quadTree = Symbol('_quadTree');
   var _merged = Symbol('_merged');
 
   /**
@@ -82,6 +82,7 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
   };
   //endregion
 
+  //region Constants
   /**
    * @type {Object.<string, vs.ui.Setting>}
    */
@@ -103,11 +104,15 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
     'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
     'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness']
   });
+  //endregion
 
+  //region Properties
   Object.defineProperties(ScatterPlot.prototype, {
     'settings': { get: /** @type {function (this:ScatterPlot)} */ (function() { return ScatterPlot.Settings; })}
   });
+  //endregion
 
+  //region Methods
   ScatterPlot.prototype.beginDraw = function() {
     var self = this;
     var args = arguments;
@@ -121,6 +126,7 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
 
         var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
         var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
+        var yBoundaries = /** @type {vs.models.Boundaries} */ (self.optionValue('yBoundaries'));
         var xVal = /** @type {string} */ (self.optionValue('xVal'));
         var yVal = /** @type {string} */ (self.optionValue('yVal'));
         var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
@@ -146,8 +152,10 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
         w = h = itemRadius;
 
         items.forEach(function(d) {
-          var initialPoint = {'x': d[xCol][yVal], 'y': d[yCol][yVal]};
-          var point = transform.calc(initialPoint);
+          var point = transform.calc({
+            'x': d[xCol] != undefined ? d[xCol][yVal] : yBoundaries.min,
+            'y': d[yCol] != undefined ? d[yCol][yVal] : yBoundaries.min
+          });
 
           qt.insert(point.x - w, point.y - h, w * 2, h * 2, d);
         });
@@ -173,6 +181,7 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
       var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
       var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
       var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
+      var yBoundaries = /** @type {vs.models.Boundaries} */ (self.optionValue('yBoundaries'));
 
       var xVal = /** @type {string} */ (self.optionValue('xVal'));
       var yVal = /** @type {string} */ (self.optionValue('yVal'));
@@ -210,8 +219,13 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
       u.async.each(items, function(d) {
         return new Promise(function(drawCircleResolve, drawCircleReject) {
           setTimeout(function() {
-            var point = transform.calc({'x': d[xCol][yVal], 'y': d[yCol][yVal]});
-            vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, fill, stroke, strokeThickness);
+            var point = transform.calc({
+              'x': d[xCol] != undefined ? d[xCol][yVal] : yBoundaries.min,
+              'y': d[yCol] != undefined ? d[yCol][yVal] : yBoundaries.min
+            });
+            var f = d[xCol] == undefined || d[yCol] == undefined ? 'rgba(170,170,170,0.5)' : fill;
+            var s = d[xCol] == undefined || d[yCol] == undefined ? 'rgb(170,170,170)' : stroke;
+            vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, f, s, strokeThickness);
             drawCircleResolve();
           }, 0);
         });
@@ -275,12 +289,13 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
         var data = cols.map(function(col) { return self.data[u.array.indexOf(self.data, function(d) {return d.id == col;})]; });
         if (data.length < 2) { reject('Scatter plot needs two columns of data, but only received ' + cols.length); return; }
 
-        var mergeCols = /** @type {function(vs.models.DataSource, vs.models.DataSource, string):vs.models.DataSource} */ (self.optionValue('mergeCols'));
-        self[_merged] = mergeCols(data[0], data[1], xVal);
+        var mergeCols = /** @type {function(string, Array.<vs.models.DataSource>):vs.models.DataSource} */ (self.optionValue('mergeCols'));
+        self[_merged] = mergeCols(xVal, data);
         resolve();
       });
     });
   };
+  //endregion
 
   return ScatterPlot;
 })();
