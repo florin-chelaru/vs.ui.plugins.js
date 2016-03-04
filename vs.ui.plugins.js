@@ -531,14 +531,14 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
 
         var items = data.asDataRowArray();
-        var selection = vis.append('path')
+        vis.append('path')
             .attr('d', lineFunc(items))
             .attr('stroke', colorOption[0])
             .attr("stroke-width", strokeThickness)
             .attr("id", 'tag' + categories[0])
             .attr('fill', 'none');
 
-        selection.remove();
+        //selection.remove();
         /*
         selection.enter()
             .append('path')
