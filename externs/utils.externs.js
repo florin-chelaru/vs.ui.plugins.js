@@ -329,6 +329,14 @@ u.map = function(obj, callback, thisArg) {};
 u.copy = function(obj) {};
 
 /**
+ * @param {Array.<T>} arr
+ * @param {function(T): {key: (string|number), value: *}} callback
+ * @returns {Object.<(string|number), *>}
+ * @template T
+ */
+u.mapToObject = function(arr, callback) {};
+
+/**
  * Extends the properties of dst with those of the other arguments of the function;
  * values corresponding to common keys are overriden.
  * @param {Object} dst
@@ -516,3 +524,18 @@ u.QuadTree.Node = function(x, y, size, parent) {};
  * @constructor
  */
 u.QuadTree.Item = function(x, y, w, h, value) {};
+
+u.fast = {};
+
+/**
+ * @param {Array} arr
+ * @param {function(*, (number|undefined)): *} callback
+ * @returns {Array}
+ */
+u.fast.map = function(arr, callback) {};
+
+/**
+ * @param {Array.<Array>} arrays
+ * @returns {Array}
+ */
+u.fast.concat = function(arrays) {};

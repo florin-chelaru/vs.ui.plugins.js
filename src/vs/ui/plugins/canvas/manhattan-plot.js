@@ -104,8 +104,8 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
           vs.models.Transformer
             .scale(xScale, yScale)
             .translate({'x': margins.left, 'y': margins.top});
-        // var items = data.asDataRowArray();
-        var items = data.map(function(d) { return d.d; }).reduce(function(arr1, arr2) { return arr1.concat(arr2); });
+
+        var items = u.fast.concat(u.fast.map(data, function(d) { return d.d; }));
         var w, h;
         w = h = itemRadius;
 
@@ -159,7 +159,7 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
         vs.models.Transformer
           .scale(xScale, yScale)
           .translate({'x': margins.left, 'y': margins.top});
-      var items = data.map(function(d) { return d.d; }).reduce(function(arr1, arr2) { return arr1.concat(arr2); });
+      var items = u.fast.concat(u.fast.map(data, function(d) { return d.d; }));
 
       // Instead of drawing all circles synchronously (and risk causing the browser to hang)...
       /*items.forEach(function(d) {
@@ -196,10 +196,10 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
   };
 
   /**
-   * @param {HTMLElement} canvas
-   * @param {Object} d
+   * @param {vs.ui.BrushingEvent} e
+   * @param {Array.<Object>} objects
    */
-  ManhattanPlot.prototype.highlightItem = function(canvas, d) {
+  ManhattanPlot.prototype.highlightItem = function(e, objects) {
     /*var self = this;
     var margins = /!** @type {vs.models.Margins} *!/ (self.optionValue('margins'));
     var xScale = /!** @type {function(number): number} *!/ (self.optionValue('xScale'));

@@ -93,18 +93,29 @@ vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw = function() {
     viewport
       .attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
 
-    var items = data.map(function(d) { return d.d; }).reduce(function(arr1, arr2) { return arr1.concat(arr2); });
-    var selection = viewport.selectAll('circle').data(items, JSON.stringify);
+    var items = u.fast.concat(u.fast.map(data, function(d) { return d.d; }));
+    var selection = viewport.selectAll('circle').data(items, self._key());
 
+    /** @type {Object.<string, vs.models.DataSource>} */
+    var dataMap = u.mapToObject(self['data'], function(d) { return {'key': d['id'], 'value': d}});
     selection.enter()
       .append('circle')
-      .attr('class', 'vs-item');
+      .attr('class', 'vs-item')
+      .on('mouseover', function (d) {
+        if (d) { self['brushing'].fire(new vs.ui.BrushingEvent(dataMap[d['__d__']], vs.ui.BrushingEvent.Action['MOUSEOVER'], d)); }
+      })
+      .on('mouseout', function (d) {
+        if (d) { self['brushing'].fire(new vs.ui.BrushingEvent(dataMap[d['__d__']], vs.ui.BrushingEvent.Action['MOUSEOUT'], d)); }
+      })
+      .on('click', function (d) {
+        d3.event.stopPropagation();
+      });
 
     selection
       .attr('r', itemRadius)
       .attr('cx', function(d) { return xScale(parseFloat(d[x])); })
       .attr('cy', function(d) { return yScale(parseFloat(d[y])); })
-      .attr('fill', function(d) { return u.hex2rgba(fills(d['__d__']), fillOpacity); })
+      .style('fill', function(d) { return u.hex2rgba(fills(d['__d__']), fillOpacity); })
       .style('stroke', function(d) { return strokes([d['__d__']]); })
       .style('stroke-width', strokeThickness);
 
@@ -118,34 +129,55 @@ vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw = function() {
 };
 
 /**
- * @param {HTMLElement} viewport Can be canvas, svg, etc.
- * @param {Object} d
+ * @param {vs.ui.BrushingEvent} e
+ * @param {Array.<Object>} objects
  */
-vs.ui.plugins.svg.ManhattanPlot.prototype.highlightItem = function(viewport, d) {
-  /*var v = d3.select(viewport);
-  var selectFill = /!** @type {string} *!/ (this.optionValue('selectFill'));
-  var selectStroke = /!** @type {string} *!/ (this.optionValue('selectStroke'));
-  var selectStrokeThickness = /!** @type {number} *!/ (this.optionValue('selectStrokeThickness'));
-  var items = v.selectAll('.vs-item').data([d], vs.models.DataSource.key);
-  items
+vs.ui.plugins.svg.ManhattanPlot.prototype.highlightItem = function(e, objects) {
+  var viewport = d3.select(this.$element[0]).select('svg').select('.viewport');
+  if (viewport.empty()) { return; }
+
+  var key = this._key();
+  var map = u.mapToObject(objects, function(d) { return {'key': key(d), 'value': true}; });
+  var elems = viewport.selectAll('.vs-item').filter(function(d) { return key(d) in map; });
+  if (elems.empty()) { return; }
+
+  var selectFill = /** @type {string} */ (this.optionValue('selectFill'));
+  var selectStroke = /** @type {string} */ (this.optionValue('selectStroke'));
+  var selectStrokeThickness = /** @type {number} */ (this.optionValue('selectStrokeThickness'));
+
+  elems
     .style('stroke', selectStroke)
     .style('stroke-width', selectStrokeThickness)
     .style('fill', selectFill);
-  $(items[0]).appendTo($(viewport));*/
+  $(elems[0]).appendTo($(viewport[0]));
 };
 
 /**
- * @param {HTMLElement} viewport Can be canvas, svg, etc.
- * @param {Object} d
+ * @param {vs.ui.BrushingEvent} e
+ * @param {Array.<Object>} objects
  */
-vs.ui.plugins.svg.ManhattanPlot.prototype.unhighlightItem = function(viewport, d) {
-  /*var v = d3.select(viewport);
-  var fill = /!** @type {string} *!/ (this.optionValue('fill'));
-  var stroke = /!** @type {string} *!/ (this.optionValue('stroke'));
-  var strokeThickness = /!** @type {number} *!/ (this.optionValue('strokeThickness'));
-  v.selectAll('.vs-item').data([d], vs.models.DataSource.key)
-    .style('stroke', stroke)
-    .style('stroke-width', strokeThickness)
-    .style('fill', fill);*/
+vs.ui.plugins.svg.ManhattanPlot.prototype.unhighlightItem = function(e, objects) {
+  var viewport = d3.select(this.$element[0]).select('svg').select('.viewport');
+  if (viewport.empty()) { return; }
+
+  var key = this._key();
+  var map = u.mapToObject(objects, function(d) { return {'key': key(d), 'value': true}; });
+  var elems = viewport.selectAll('.vs-item').filter(function(d) { return key(d) in map; });
+  if (elems.empty()) { return; }
+
+  var fills = /** @type {function(*):string} */ (this.optionValue('fills'));
+  var strokes = /** @type {function(*):string} */ (this.optionValue('strokes'));
+  var fillOpacity = /** @type {number} */ (this.optionValue('fillOpacity'));
+  var strokeThickness = /** @type {number} */ (this.optionValue('strokeThickness'));
+
+  elems
+    .style('fill', function(d) { return u.hex2rgba(fills(d['__d__']), fillOpacity); })
+    .style('stroke', function(d) { return strokes([d['__d__']]); })
+    .style('stroke-width', strokeThickness);
+};
+
+vs.ui.plugins.svg.ManhattanPlot.prototype._key = function() {
+  var x = /** @type {string} */ (this.optionValue('xVal'));
+  return function(d) { return d['__d__'] + '-' + d[x]; };
 };
 //endregion

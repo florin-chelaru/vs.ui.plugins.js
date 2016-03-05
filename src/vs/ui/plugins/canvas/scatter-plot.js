@@ -247,10 +247,10 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
   };
 
   /**
-   * @param {HTMLElement} canvas
-   * @param {Object} d
+   * @param {vs.ui.BrushingEvent} e
+   * @param {Array.<Object>} objects
    */
-  ScatterPlot.prototype.highlightItem = function(canvas, d) {
+  ScatterPlot.prototype.highlightItem = function(e, objects) {
     /*var margins = /!** @type {vs.models.Margins} *!/ (this.optionValue('margins'));
     var xScale = /!** @type {function(number): number} *!/ (this.optionValue('xScale'));
     var yScale = /!** @type {function(number): number} *!/ (this.optionValue('yScale'));

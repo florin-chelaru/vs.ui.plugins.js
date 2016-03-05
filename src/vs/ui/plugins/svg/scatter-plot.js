@@ -120,12 +120,15 @@ vs.ui.plugins.svg.ScatterPlot = (function() {
       if (!data || !data.d.length) { resolve(); return; }
 
       var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
+      var xCol = cols[0];
+      var yCol = cols[1];
 
       var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
       var yBoundaries = /** @type {vs.models.Boundaries} */ (self.optionValue('yBoundaries'));
       var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
       var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
 
+      var key = /** @type {string} */ (self.optionValue('xVal'));
       var yVal = /** @type {string} */ (self.optionValue('yVal'));
 
       var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
@@ -136,9 +139,6 @@ vs.ui.plugins.svg.ScatterPlot = (function() {
       var strokeThickness = /** @type {number} */ (self.optionValue('strokeThickness'));
 
       var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
-
-      var xCol = cols[0];
-      var yCol = cols[1];
 
       var svg = d3.select(self.$element[0]).select('svg');
 
@@ -151,17 +151,29 @@ vs.ui.plugins.svg.ScatterPlot = (function() {
         .attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
 
       var items = data.d;
-      var selection = viewport.selectAll('circle').data(items, JSON.stringify);
+      var selection = viewport.selectAll('circle').data(items, function(d) { return d[key]; });
 
+      /** @type {Object.<string, vs.models.DataSource>} */
+      var dataMap = u.mapToObject(self['data'], function(d) { return {'key': d['id'], 'value': d}});
       selection.enter()
         .append('circle')
-        .attr('class', 'vs-item');
-
+        .attr('class', 'vs-item')
+        .on('mouseover', function (d) {
+          if (d[xCol]) { self['brushing'].fire(new vs.ui.BrushingEvent(dataMap[xCol], vs.ui.BrushingEvent.Action['MOUSEOVER'], d[xCol])); }
+          if (d[yCol]) { self['brushing'].fire(new vs.ui.BrushingEvent(dataMap[yCol], vs.ui.BrushingEvent.Action['MOUSEOVER'], d[yCol])); }
+        })
+        .on('mouseout', function (d) {
+          if (d[xCol]) { self['brushing'].fire(new vs.ui.BrushingEvent(dataMap[xCol], vs.ui.BrushingEvent.Action['MOUSEOUT'], d[xCol])); }
+          if (d[yCol]) { self['brushing'].fire(new vs.ui.BrushingEvent(dataMap[yCol], vs.ui.BrushingEvent.Action['MOUSEOUT'], d[yCol])); }
+        })
+        .on('click', function (d) {
+          d3.event.stopPropagation();
+        });
       selection
         .attr('r', itemRadius)
         .attr('cx', function(d) { return xScale(d[xCol] != undefined ? d[xCol][yVal] : yBoundaries.min); })
         .attr('cy', function(d) { return yScale(d[yCol] != undefined ? d[yCol][yVal] : yBoundaries.min); })
-        .attr('fill', function(d) { return d[xCol] == undefined || d[yCol] == undefined ? 'rgba(170,170,170,0.5)' : fill; })
+        .style('fill', function(d) { return d[xCol] == undefined || d[yCol] == undefined ? 'rgba(170,170,170,0.5)' : fill; })
         .style('stroke', function(d) { return d[xCol] == undefined || d[yCol] == undefined ? 'rgb(170,170,170)' : stroke; })
         .style('stroke-width', strokeThickness);
 
@@ -175,35 +187,55 @@ vs.ui.plugins.svg.ScatterPlot = (function() {
   };
 
   /**
-   * @param {HTMLElement} viewport Can be canvas, svg, etc.
-   * @param {Object} d
+   * @param {vs.ui.BrushingEvent} e
+   * @param {Array.<Object>} objects
    */
-  ScatterPlot.prototype.highlightItem = function(viewport, d) {
-    /*var v = d3.select(viewport);
-     var selectFill = /!** @type {string} *!/ (this.optionValue('selectFill'));
-     var selectStroke = /!** @type {string} *!/ (this.optionValue('selectStroke'));
-     var selectStrokeThickness = /!** @type {number} *!/ (this.optionValue('selectStrokeThickness'));
-     var items = v.selectAll('.vs-item').data([d], vs.models.DataSource.key);
-     items
-     .style('stroke', selectStroke)
-     .style('stroke-width', selectStrokeThickness)
-     .style('fill', selectFill);
-     $(items[0]).appendTo($(viewport));*/
+  ScatterPlot.prototype.highlightItem = function(e, objects) {
+    var viewport = d3.select(this.$element[0]).select('svg').select('.viewport');
+    if (viewport.empty()) { return; }
+
+    var key = /** @type {string} */ (this.optionValue('xVal'));
+    var map = u.mapToObject(objects, function(d) { return {'key': d[key], 'value': true}; });
+    var elems = viewport.selectAll('.vs-item').filter(function(d) { return d[key] in map; });
+    if (elems.empty()) { return; }
+
+    var selectFill = /** @type {string} */ (this.optionValue('selectFill'));
+    var selectStroke = /** @type {string} */ (this.optionValue('selectStroke'));
+    var selectStrokeThickness = /** @type {number} */ (this.optionValue('selectStrokeThickness'));
+
+    elems
+      .style('fill', selectFill)
+      .style('stroke', selectStroke)
+      .style('stroke-width', selectStrokeThickness);
+
+    $(elems[0]).appendTo($(viewport));
   };
 
   /**
-   * @param {HTMLElement} viewport Can be canvas, svg, etc.
-   * @param {Object} d
+   * @param {vs.ui.BrushingEvent} e
+   * @param {Array.<Object>} objects
    */
-  ScatterPlot.prototype.unhighlightItem = function(viewport, d) {
-    /*var v = d3.select(viewport);
-     var fill = /!** @type {string} *!/ (this.optionValue('fill'));
-     var stroke = /!** @type {string} *!/ (this.optionValue('stroke'));
-     var strokeThickness = /!** @type {number} *!/ (this.optionValue('strokeThickness'));
-     v.selectAll('.vs-item').data([d], vs.models.DataSource.key)
-     .style('stroke', stroke)
+  ScatterPlot.prototype.unhighlightItem = function(e, objects) {
+    var viewport = d3.select(this.$element[0]).select('svg').select('.viewport');
+    if (viewport.empty()) { return; }
+
+    var key = /** @type {string} */ (this.optionValue('xVal'));
+    var map = u.mapToObject(objects, function(d) { return {'key': d[key], 'value': true}; });
+    var elems = viewport.selectAll('.vs-item').filter(function(d) { return d[key] in map; });
+    if (elems.empty()) { return; }
+
+    var fill = /** @type {string} */ (this.optionValue('fill'));
+    var stroke = /** @type {string} */ (this.optionValue('stroke'));
+    var strokeThickness = /** @type {number} */ (this.optionValue('strokeThickness'));
+
+    var cols = /** @type {Array.<string>} */ (this.optionValue('cols'));
+    var xCol = cols[0];
+    var yCol = cols[1];
+
+    elems
      .style('stroke-width', strokeThickness)
-     .style('fill', fill);*/
+     .style('fill', function(d) { return d[xCol] == undefined || d[yCol] == undefined ? 'rgba(170,170,170,0.5)' : fill; })
+     .style('stroke', function(d) { return d[xCol] == undefined || d[yCol] == undefined ? 'rgb(170,170,170)' : stroke; });
   };
 
   ScatterPlot.prototype.preProcessData = function() {

@@ -38,7 +38,7 @@ ngu.Directive.prototype.link = {
  * @param {function(new: ngu.Directive)} controllerCtor
  * @param {Array} [args]
  * @param {Object.<string, *>} [options]
- * @returns {{controller: (Array|Function), link: Function, restrict: string, transclude: boolean, replace: boolean}}
+ * @returns {Object.<string, *>}
  */
 ngu.Directive.createNew = function(name, controllerCtor, args, options) {};
 
@@ -133,3 +133,67 @@ ngu.d.TransitionEnd = function ($scope) {};
  * @override
  */
 ngu.d.TransitionEnd.prototype.link = function ($scope, $element, $attrs) {};
+
+/**
+ * @constructor
+ */
+ngu.Configuration = function() {};
+
+/**
+ * @returns {ngu.Configuration}
+ */
+ngu.Configuration.prototype.$get = function() {};
+
+/**
+ * @param {function(new: ngu.ProviderService)} serviceCtor
+ * @param {Array.<string>} [serviceArgs]
+ * @constructor
+ */
+ngu.Provider = function(serviceCtor, serviceArgs) {};
+
+/**
+ * @type {string}
+ * @name ngu.Provider#id
+ */
+ngu.Provider.prototype.id;
+
+/**
+ * @type {Array}
+ * @name ngu.Provider#$get
+ */
+ngu.Provider.prototype.$get;
+
+/**
+ * @param {ngu.Provider} provider
+ * @constructor
+ * @extends {ngu.Service}
+ */
+ngu.ProviderService = function(provider) {};
+
+/**
+ * @type {ngu.Provider}
+ * @name ngu.ProviderService#provider
+ */
+ngu.ProviderService.prototype.provider;
+
+/**
+ * @param {boolean} [keepScrollbar]
+ * @returns {{$doc: jQuery, scrollTop: number}}
+ */
+ngu.disableBodyScroll = function(keepScrollbar) {};
+
+/**
+ * @param {{$doc: jQuery, scrollTop: number}} previousState
+ */
+ngu.reEnableBodyScroll = function(previousState) {};
+
+/**
+ * @param {string} ua
+ * @returns {{browser: string, version: string}}
+ */
+ngu.uaMatch = function(ua) {};
+
+/**
+ * @returns {{chrome: (boolean|undefined), safari: (boolean|undefined), webkit: (boolean|undefined), mozilla: (boolean|undefined), version: (string|undefined)}}
+ */
+ngu.browser = function() {};
