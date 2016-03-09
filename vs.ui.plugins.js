@@ -519,106 +519,133 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
         vis.attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
 
-
-        var lineFunc = d3.svg.line()
-            .x(function (d) {
-                return xScale(parseFloat(d.info(row)));
-            })
-            .y(function (d) {
-                return yScale(d.val(cols[0], valsLabel));
-            })
-            .interpolate('linear');
-
+        var chooseLine = function(i){
+            return d3.svg.line()
+                .x(function (d) {
+                    return xScale(parseFloat(d.info(row)));
+                })
+                .y(function (d) {
+                    return yScale(d.val(cols[i], valsLabel));
+                })
+                .interpolate('linear');
+        }
 
         var items = data.asDataRowArray();
         var selection = vis.selectAll('path').data([0]);
+        var selection2 = vis.selectAll('path2').data([0]);
+        var xBox1 = vis.selectAll('g1').data([0]);
+        var focus1 = vis.selectAll('G1').data([0]);
+        var focus2 = vis.selectAll('G2').data([0]);
+
+        focus1.enter()
+            .append('g')
+            .attr("class", "focus")
+            .style("display", "none");
+        focus1.append("circle")
+            .attr("r", 4.5)
+            .attr("fill", "blue")
+            .attr("stroke: #9bffa9");
+        focus1.append("text")
+            .attr("x", 9)
+            .attr("background", "black")
+            .attr("dy", ".35em");
+
+        focus2.enter()
+            .append('g')
+            .attr("class", "focus")
+            .style("display", "none");
+        focus2.append("circle")
+            .attr("r", 4.5)
+            .attr("fill", "red")
+            .attr("stroke: #9bffa9");
+        focus2.append("rect")
+            .attr()
+        focus2.append("text")
+            .attr("x", 9)
+            .attr("background", "black")
+            .attr("dy", ".35em");
+
         selection.enter()
             .append('path')
-            .attr('d', lineFunc(items))
             .attr('stroke', colorOption[0])
             .attr("stroke-width", strokeThickness)
             .attr("id", 'tag' + categories[0])
             .attr('fill', 'none');
 
-        selection.exit().remove();
+        selection.attr('d', chooseLine(0)(items));
 
-        /*var bisection = d3.bisector(function (d) {
-            return d.x;
-        }).left;*/
+        selection2.enter()
+            .append('path')
+            .attr('stroke', colorOption[1])
+            .attr("stroke-width", strokeThickness)
+            .attr("id", 'tag' + categories[1])
+            .attr('fill', 'none');
 
+        selection2.attr('d', chooseLine(1)(items));
 
-        /*xy.forEach(function (d, i) {
-            vis.append('path')
-                .attr('d', lineFunc(d))
-                .attr('stroke', colorOption[i])
-                .attr("stroke-width", strokeThickness)
-                .attr("id", 'tag' + categories[i])
-                .attr('fill', 'none');
-
-            // Add the Legend
-            /*vis.append('text')
-                .attr("x", 80 + 80 * i)
-                .attr("y", 550)
-                .attr("class", "legend")
-                .attr("fill", colorOption[i])
-                .on("click", function () {
-                    var active = d.active ? false : true,
-                        newOpacity = active ? 0 : 1;
-                    d3.select("#tag" + categories[i])
-                        .transition().duration(100)
-                        .style("opacity", newOpacity);
-                    // Update whether or not the elements are active
-                    d.active = active;
-                })
-                .text(categories[i]);
-
-            d.sort(function (a, b) {
-                return a.x - b.x;
-            });
-        });
-        var foci = [];
-
-        for (var i = 0; i < xy.length; i++) {
-
-            var focus = vis.append('g')
-                .attr("class", "focus")
-                .style("display", "none");
-            focus.append("circle")
-                .attr("r", 4.5);
-            focus.append("text")
-                .attr("x", 9)
-                .attr("background", "black")
-                .attr("dy", ".35em");
-
-            foci.push(focus);
-        }
+        xBox1.enter()
+            .append('rect')
+            .data(items);
 
 
-        vis.append('rect')
-            .attr("class", "overlay")
-            .attr("width", WIDTH)
-            .attr("height", HEIGHT)
+        xBox1.attr("fill", "none")
+            .attr("pointer-events", "all")
+            .attr("width", width)
+            .attr("height", height)
             .on("mouseover", function () {
-                xy.forEach(function (d, i) {
-                    foci[i].style("display", null);
-                });
+                focus1.style("display",null);
+                focus2.style("display",null);
             })
             .on("mouseout", function () {
-                xy.forEach(function (d, i) {
-                    foci[i].style("display", "none");
-                });
+                focus1.style("display","none");
+                focus2.style("display","none");
             })
-            .on("mousemove", function () {
-                var x0 = xRange.invert(d3.mouse(this)[0]);
-                xy.forEach(function (d, i) {
-                    var index = bisection(d, x0, 1),
-                        d0 = d[index - 1],
-                        d1 = d[index],
-                        d2 = x0 - d0.x > d1.x - x0 ? d1 : d0;
-                    foci[i].attr("transform", "translate(" + xRange(d2.x) + "," + yRange(d2.y) + ")");
-                    foci[i].select("text").text(d2.x + ", " + d2.y);
-                });
-            });*/
+            .on("mousemove", function (d, i) {
+
+                var x0 = xScale.invert(d3.mouse(this)[0]);
+                var y1 = items.map(function(item) { return item.val(cols[0], valsLabel); });
+                var y2 = items.map(function(item) { return item.val(cols[1], valsLabel); });
+
+                if(x0 > 550000){
+                    focus1.select("text").attr("x", -100);
+                    focus2.select("text").attr("x", -100);
+                } else {
+                    focus1.select("text").attr("x", 9);
+                    focus2.select("text").attr("x", 9);
+                }
+                var xArray = items.map(function(item) { return parseFloat(item.info(row)); });
+                var index1 = d3.bisectLeft(xArray,x0),
+                    d0 = xArray[index1 - 1],
+                    d1 = xArray[index1],
+                    d2 = x0 - d0 > d1 - x0 ? d1 : d0;
+
+                console.log(index1);
+
+                    if(d2 == d0){
+                        var showIndex = index1 - 1;
+                    } else {
+                        var showIndex = index1;
+                    }
+
+                focus1.attr("transform", "translate(" + xScale(d2) + "," + yScale(y1[showIndex]) + ")");
+                focus1.select("text").text(d2 + ", " + y1[showIndex]);
+
+                var index2 = d3.bisectLeft(xArray,x0),
+                    h0 = xArray[index1 - 1],
+                    h1 = xArray[index1],
+                    h2 = x0 - h0 > h1 - x0 ? h1 : h0;
+
+                focus2.attr("transform", "translate(" + xScale(h2) + "," + yScale(y2[showIndex]) + ")");
+                focus2.select("text").text(h2 + ", " + y2[showIndex]);
+
+            });
+
+        selection.exit().remove();
+        selection2.exit().remove();
+        focus1.exit().remove();
+        focus2.exit().remove();
+        xBox1.exit().remove();
+
 
         resolve();
     }).then(function(){
