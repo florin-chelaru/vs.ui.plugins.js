@@ -151,14 +151,17 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
         var w, h;
         w = h = itemRadius;
 
-        items.forEach(function(d) {
+        for (var i = 0; i < items.length; ++i) {
+          var d = items[i];
+          //items.forEach(function(d) {
           var point = transform.calc({
             'x': d[xCol] != undefined ? d[xCol][yVal] : yBoundaries.min,
             'y': d[yCol] != undefined ? d[yCol][yVal] : yBoundaries.min
           });
 
           qt.insert(point.x - w, point.y - h, w * 2, h * 2, d);
-        });
+          //});
+        }
 
         self[_quadTree] = qt;
 
@@ -241,9 +244,16 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
    * @returns {Array.<Object>}
    */
   ScatterPlot.prototype.getItemsAt = function(x, y) {
-    /*if (!this[_quadTree]) { return []; }
-    return this[_quadTree].collisions(x, y).map(function(v) { return v.value; });*/
-    return [];
+    if (!this[_quadTree]) { return []; }
+    var cols = /** @type {Array.<string>} */ (this.optionValue('cols'));
+    var xCol = cols[0];
+    var yCol = cols[1];
+    return u.fast.concat(u.fast.map(this[_quadTree].collisions(x, y), function(v) {
+      var ret = [];
+      if (v.value[xCol] != undefined) { ret.push(v.value[xCol]); }
+      if (v.value[yCol] != undefined) { ret.push(v.value[yCol]); }
+      return ret;
+    }));
   };
 
   /**
@@ -251,18 +261,30 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
    * @param {Array.<Object>} objects
    */
   ScatterPlot.prototype.highlightItem = function(e, objects) {
-    /*var margins = /!** @type {vs.models.Margins} *!/ (this.optionValue('margins'));
-    var xScale = /!** @type {function(number): number} *!/ (this.optionValue('xScale'));
-    var yScale = /!** @type {function(number): number} *!/ (this.optionValue('yScale'));
-    var cols = /!** @type {Array.<string>} *!/ (this.optionValue('cols'));
-    var valsLabel = /!** @type {string} *!/ (this.optionValue('vals'));
-    var itemRatio = /!** @type {number} *!/ (this.optionValue('itemRatio'));
-    var width = /!** @type {number} *!/ (this.optionValue('width'));
-    var height = /!** @type {number} *!/ (this.optionValue('height'));
+    if (!this.brushingCanvas) { return; }
 
-    var selectFill = /!** @type {string} *!/ (this.optionValue('selectFill'));
-    var selectStroke = /!** @type {string} *!/ (this.optionValue('selectStroke'));
-    var selectStrokeThickness = /!** @type {number} *!/ (this.optionValue('selectStrokeThickness'));
+    /** @type {vs.models.DataSource} */
+    var data = this[_merged];
+    if (!data) { return; }
+
+    var key = /** @type {string} */ (this.optionValue('xVal'));
+    var map = u.mapToObject(objects, function(d) { return {'key': d[key], 'value': true}; });
+    var elems = u.fast.filter(data.d, function(d) { return d[key] in map; });
+    if (!elems.length) { return; }
+
+    var margins = /** @type {vs.models.Margins} */ (this.optionValue('margins'));
+    var xScale = /** @type {function(number): number} */ (this.optionValue('xScale'));
+    var yScale = /** @type {function(number): number} */ (this.optionValue('yScale'));
+    var cols = /** @type {Array.<string>} */ (this.optionValue('cols'));
+    var yVal = /** @type {string} */ (this.optionValue('yVal'));
+    var itemRatio = /** @type {number} */ (this.optionValue('itemRatio'));
+    var width = /** @type {number} */ (this.optionValue('width'));
+    var height = /** @type {number} */ (this.optionValue('height'));
+    var yBoundaries = /** @type {vs.models.Boundaries} */ (this.optionValue('yBoundaries'));
+
+    var selectFill = /** @type {string} */ (this.optionValue('selectFill'));
+    var selectStroke = /** @type {string} */ (this.optionValue('selectStroke'));
+    var selectStrokeThickness = /** @type {number} */ (this.optionValue('selectStrokeThickness'));
 
     var transform =
       vs.models.Transformer
@@ -273,10 +295,30 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
 
     var xCol = cols[0];
     var yCol = cols[1];
-    var point = transform.calc({'x': d.val(xCol, valsLabel), 'y': d.val(yCol, valsLabel)});
 
-    var context = canvas.getContext('2d');
-    vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, selectFill, selectStroke, selectStrokeThickness);*/
+    var context = this.brushingCanvas[0].getContext('2d');
+    this.brushingCanvas
+      .attr({'width': width, 'height': height});
+    elems.forEach(function(d) {
+      var point = transform.calc({
+        'x': d[xCol] != undefined ? d[xCol][yVal] : yBoundaries.min,
+        'y': d[yCol] != undefined ? d[yCol][yVal] : yBoundaries.min
+      });
+      vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, selectFill, selectStroke, selectStrokeThickness);
+    });
+
+    this.brushingCanvas.css('display', 'block');
+  };
+
+  /**
+   * @param {vs.ui.BrushingEvent} e
+   * @param {Array.<Object>} objects
+   */
+  ScatterPlot.prototype.unhighlightItem = function(e, objects) {
+    this.brushingCanvas.css('display', 'none');
+    var width = /** @type {number} */ (this.optionValue('width'));
+    var height = /** @type {number} */ (this.optionValue('height'));
+    this.brushingCanvas[0].getContext('2d').clearRect(0, 0, width, height);
   };
 
   ScatterPlot.prototype.preProcessData = function() {

@@ -325,7 +325,7 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
         children: [],
         dataChanged: new u.Event(),
         visualizations: [
-          /*{
+          {
             construct: {
               render: 'canvas',
               type: 'scatterplot'
@@ -384,15 +384,13 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
                 }
               ]
             }
-          },*/
+          },
           {
             construct: {
               render: 'svg',
               type: 'scatterplot'
             },
             options: {
-              doubleBuffer: false,
-              axisBoundaries: {},
               x: 220,
               y: 60,
               width: 200,
