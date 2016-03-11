@@ -60,7 +60,7 @@ vs.ui.plugins.svg.ScatterPlot = (function() {
   ScatterPlot.xScale = function (options, $attrs, data, settings) {
     var dependencies = ['yBoundaries', 'width', 'margins'];
     if (!settings) { throw new vs.ui.UiException('Settings not provided for "xScale", which depends on ' + JSON.stringify(dependencies)); }
-    dependencies.forEach(function(dep) {
+    u.fast.forEach(dependencies, function(dep) {
       if (!(dep in settings)) {
         throw new vs.ui.UiException('Missing dependency for "' + dep + '" in the "xScale" defaultValue function');
       }
@@ -242,11 +242,11 @@ vs.ui.plugins.svg.ScatterPlot = (function() {
   ScatterPlot.prototype.preProcessData = function() {
     var self = this;
     return new Promise(function(resolve, reject) {
-      Promise.all(self.data.map(function(d) { return d.ready; })).then(function() {
+      Promise.all(u.fast.map(self.data, function(d) { return d.ready; })).then(function() {
         var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
         var xVal = /** @type {string} */ (self.optionValue('xVal'));
 
-        var data = cols.map(function(col) { return self.data[u.array.indexOf(self.data, function(d) {return d.id == col;})]; });
+        var data = u.fast.map(cols, function(col) { return self.data[u.array.indexOf(self.data, function(d) {return d.id == col;})]; });
         if (data.length < 2) { reject('Scatter plot needs two columns of data, but only received ' + cols.length); return; }
 
         var mergeCols = /** @type {function(string, Array.<vs.models.DataSource>):vs.models.DataSource} */ (self.optionValue('mergeCols'));

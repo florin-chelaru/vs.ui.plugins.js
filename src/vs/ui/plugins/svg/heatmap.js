@@ -123,7 +123,7 @@ vs.ui.plugins.svg.Heatmap = (function() {
         .attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
 
       var items = u.fast.concat(u.fast.map(data.d, function(m) {
-        return cols.map(function(col) { return m[col]; });
+        return u.fast.map(cols, function(col) { return m[col]; });
       }));
 
       /** @type {Object.<string, vs.models.DataSource>} */
@@ -215,11 +215,11 @@ vs.ui.plugins.svg.Heatmap = (function() {
   Heatmap.prototype.preProcessData = function() {
     var self = this;
     return new Promise(function(resolve, reject) {
-      Promise.all(self.data.map(function(d) { return d.ready; })).then(function() {
+      Promise.all(u.fast.map(self.data, function(d) { return d.ready; })).then(function() {
         var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
         var xVal = /** @type {string} */ (self.optionValue('xVal'));
 
-        var data = cols.map(function(col) { return self.data[u.array.indexOf(self.data, function(d) {return d.id == col;})]; });
+        var data = u.fast.map(cols, function(col) { return self.data[u.array.indexOf(self.data, function(d) {return d.id == col;})]; });
         if (data.length < 1) {
           self[_merged] = null;
           resolve();
