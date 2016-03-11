@@ -22,13 +22,15 @@
     "tests"
   ],
   "dependencies": {
-    "vis.js": "git://github.com/florin-chelaru/vis.js.git"
+    "vis.js": "git://github.com/florin-chelaru/vis.js.git",
   },
 
   "devDependencies": {
     "google-closure-library": "git://github.com/google/closure-library.git#56712dfced32778fc8435a4bea6a2e422e5f03c1",
     "closure-compiler": "0.2.7",
     "bigwig.js": "git://github.com/florin-chelaru/bigwig.js.git",
-    "qunit": "1.19.0"
+    "qunit": "1.19.0",
+    "bootstrap": "~3.3.6",
+    "angular-bootstrap": "~1.1.2"
   }
 }
