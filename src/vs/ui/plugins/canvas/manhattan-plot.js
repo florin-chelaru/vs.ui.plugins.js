@@ -109,12 +109,12 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
         var w, h;
         w = h = itemRadius;
 
-        items.forEach(function(d) {
-          var initialPoint = {x: parseFloat(d[x]), y: parseFloat(d[y])};
-          var point = transform.calc(initialPoint);
+        for (var i = 0; i < items.length; ++i) {
+          var d = items[i];
+          var point = transform.calc({'x': parseFloat(d[x]), 'y': parseFloat(d[y])});
 
           qt.insert(point.x - w, point.y - h, w * 2, h * 2, d);
-        });
+        }
 
         self[_quadTree] = qt;
 
@@ -173,7 +173,7 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
       u.async.each(items, function(d) {
         return new Promise(function(drawCircleResolve, drawCircleReject) {
           setTimeout(function() {
-            var point = transform.calc({x: parseFloat(d[x]), y: parseFloat(d[y])});
+            var point = transform.calc({'x': parseFloat(d[x]), 'y': parseFloat(d[y])});
             vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, u.hex2rgba(fills(d['__d__']), fillOpacity), strokes(d['__d__']), strokeThickness);
             drawCircleResolve();
           }, 0);
@@ -190,9 +190,8 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
    * @returns {Array.<Object>}
    */
   ManhattanPlot.prototype.getItemsAt = function(x, y) {
-    /*if (!this[_quadTree]) { return []; }
-    return this[_quadTree].collisions(x, y).map(function(v) { return v.value; });*/
-    return [];
+    if (!this[_quadTree]) { return []; }
+    return u.fast.map(this[_quadTree].collisions(x, y), function(v) { return v.value; });
   };
 
   /**
@@ -200,32 +199,53 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
    * @param {Array.<Object>} objects
    */
   ManhattanPlot.prototype.highlightItem = function(e, objects) {
-    /*var self = this;
-    var margins = /!** @type {vs.models.Margins} *!/ (self.optionValue('margins'));
-    var xScale = /!** @type {function(number): number} *!/ (self.optionValue('xScale'));
-    var yScale = /!** @type {function(number): number} *!/ (self.optionValue('yScale'));
-    var cols = /!** @type {Array.<string>} *!/ (self.optionValue('cols'));
-    var row = (/!** @type {Array.<string>} *!/ (self.optionValue('rows')))[0];
-    var valsLabel = /!** @type {string} *!/ (self.optionValue('vals'));
-    var itemRatio = /!** @type {number} *!/ (self.optionValue('itemRatio'));
-    var width = /!** @type {number} *!/ (self.optionValue('width'));
-    var height = /!** @type {number} *!/ (self.optionValue('height'));
+    if (!this.brushingCanvas) { return; }
+    if (!objects.length) { return; }
+
+    var self = this;
+    var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
+    var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
+    var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
+    var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
+    var xVal = /** @type {string} */ (this.optionValue('xVal'));
+    var yVal = /** @type {string} */ (this.optionValue('yVal'));
+    var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
+    var width = /** @type {number} */ (self.optionValue('width'));
+    var height = /** @type {number} */ (self.optionValue('height'));
     var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
 
-    var selectFill = /!** @type {string} *!/ (this.optionValue('selectFill'));
-    var selectStroke = /!** @type {string} *!/ (this.optionValue('selectStroke'));
-    var selectStrokeThickness = /!** @type {number} *!/ (this.optionValue('selectStrokeThickness'));
+    var selectFill = /** @type {string} */ (this.optionValue('selectFill'));
+    var selectStroke = /** @type {string} */ (this.optionValue('selectStroke'));
+    var selectStrokeThickness = /** @type {number} */ (this.optionValue('selectStrokeThickness'));
 
     var transform =
       vs.models.Transformer
         .scale(xScale, yScale)
         .translate({'x': margins.left, 'y': margins.top});
 
-    var point = transform.calc({x: parseFloat(d.info(row)), y: d.val(cols[0], valsLabel)});
+    var context = this.brushingCanvas[0].getContext('2d');
+    this.brushingCanvas
+      .attr({'width': width, 'height': height});
+    for (var i = 0; i < objects.length; ++i) {
+      var d = objects[i];
+      var point = transform.calc({'x': parseFloat(d[xVal]), 'y': d[yVal]});
+      vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, selectFill, selectStroke, selectStrokeThickness);
+    }
 
-    var context = canvas.getContext('2d');
-    vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, selectFill, selectStroke, selectStrokeThickness);*/
+    this.brushingCanvas.css('display', 'block');
   };
+
+  /**
+   * @param {vs.ui.BrushingEvent} e
+   * @param {Array.<Object>} objects
+   */
+  ManhattanPlot.prototype.unhighlightItem = function(e, objects) {
+    this.brushingCanvas.css('display', 'none');
+    var width = /** @type {number} */ (this.optionValue('width'));
+    var height = /** @type {number} */ (this.optionValue('height'));
+    this.brushingCanvas[0].getContext('2d').clearRect(0, 0, width, height);
+  };
+
   //endregion
 
   return ManhattanPlot;

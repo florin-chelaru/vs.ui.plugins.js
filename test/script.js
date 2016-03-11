@@ -347,7 +347,8 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
               xVal: 'start',
               yVal: 'gwasPval',
               fills: function() { return palette; },
-              strokes: function() { return palette; }
+              strokes: function() { return palette; },
+              selectStrokeThickness: 4
             },
             decorators: {
               cls: [
@@ -441,7 +442,7 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
               ]
             }
           },
-          /*{
+          {
             construct: {
               render: 'canvas',
               type: 'manhattan'
@@ -462,7 +463,9 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
               xVal: 'start',
               yVal: 'gwasPval',
               fills: function() { return palette; },
-              strokes: function() { return palette; }
+              strokes: function() { return palette; },
+              selectStrokeThickness: 4,
+              itemRatio: 0.03
             },
             decorators: {
               cls: [
@@ -499,7 +502,7 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
                 }
               ]
             }
-          },*/
+          },
           {
             construct: {
               render: 'svg',

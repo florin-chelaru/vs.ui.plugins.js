@@ -165,6 +165,7 @@ vs.ui.plugins.svg.Heatmap = (function() {
   Heatmap.prototype.highlightItem = function(e, objects) {
     var viewport = d3.select(this.$element[0]).select('svg').select('.viewport');
     if (viewport.empty()) { return; }
+    if (!objects.length) { return; }
 
     var key = this[_key]();
     var map = u.mapToObject(objects, function(d) { return {'key': key(d), 'value': true}; });

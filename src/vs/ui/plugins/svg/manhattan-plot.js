@@ -135,6 +135,7 @@ vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw = function() {
 vs.ui.plugins.svg.ManhattanPlot.prototype.highlightItem = function(e, objects) {
   var viewport = d3.select(this.$element[0]).select('svg').select('.viewport');
   if (viewport.empty()) { return; }
+  if (!objects.length) { return; }
 
   var key = this._key();
   var map = u.mapToObject(objects, function(d) { return {'key': key(d), 'value': true}; });

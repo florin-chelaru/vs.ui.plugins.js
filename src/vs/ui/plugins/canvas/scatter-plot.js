@@ -153,14 +153,12 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
 
         for (var i = 0; i < items.length; ++i) {
           var d = items[i];
-          //items.forEach(function(d) {
           var point = transform.calc({
             'x': d[xCol] != undefined ? d[xCol][yVal] : yBoundaries.min,
             'y': d[yCol] != undefined ? d[yCol][yVal] : yBoundaries.min
           });
 
           qt.insert(point.x - w, point.y - h, w * 2, h * 2, d);
-          //});
         }
 
         self[_quadTree] = qt;
@@ -262,6 +260,7 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
    */
   ScatterPlot.prototype.highlightItem = function(e, objects) {
     if (!this.brushingCanvas) { return; }
+    if (!objects.length) { return; }
 
     /** @type {vs.models.DataSource} */
     var data = this[_merged];
@@ -299,7 +298,7 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
     var context = this.brushingCanvas[0].getContext('2d');
     this.brushingCanvas
       .attr({'width': width, 'height': height});
-    elems.forEach(function(d) {
+    u.fast.forEach(elems, function(d) {
       var point = transform.calc({
         'x': d[xCol] != undefined ? d[xCol][yVal] : yBoundaries.min,
         'y': d[yCol] != undefined ? d[yCol][yVal] : yBoundaries.min

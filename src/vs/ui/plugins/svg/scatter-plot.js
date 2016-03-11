@@ -193,6 +193,7 @@ vs.ui.plugins.svg.ScatterPlot = (function() {
   ScatterPlot.prototype.highlightItem = function(e, objects) {
     var viewport = d3.select(this.$element[0]).select('svg').select('.viewport');
     if (viewport.empty()) { return; }
+    if (!objects.length) { return; }
 
     var key = /** @type {string} */ (this.optionValue('xVal'));
     var map = u.mapToObject(objects, function(d) { return {'key': d[key], 'value': true}; });
