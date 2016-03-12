@@ -154,11 +154,19 @@ vs.ui.plugins.canvas.Line = (function() {
                     .scale(xScale, yScale)
                     .translate({'x': margins.left, 'y': margins.top});
 
-
-
             var items = data.asDataRowArray();
 
+            u.async.each(items, function(d) {
+                return new Promise(function(drawResolve, drawReject) {
+                    setTimeout(function () {
+
+                        drawResolve();
+                    }, 0);
+                });
+            }).then(resolve, reject);
+        }).then(function() {
+            return vs.ui.canvas.CanvasVis.prototype.endDraw.apply(self, args);
         });
-    }
-});
+    };
+})();
 
