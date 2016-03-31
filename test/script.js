@@ -25,6 +25,9 @@ main.config(['configurationProvider', function(configuration) {
       },
       heatmap: {
         svg: 'vs.ui.plugins.svg.Heatmap'
+      },
+      binaryplot: {
+        svg: 'vs.ui.plugins.svg.BinaryPlot'
       }
     },
     parallel: {
@@ -48,278 +51,6 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
   var palette = d3.scale.category10();
   this.controller = {
     dataContexts: [
-      /*u.reflection.wrap({
-        name: 'Genetic Variants',
-        children: [],
-        dataChanged: new u.Event(),
-        visualizations: [
-          {
-            construct: {
-              render: 'canvas',
-              type: 'scatterplot'
-            },
-            options: {
-              doubleBuffer: true,
-              axisBoundaries: {},
-              x: 10,
-              y: 60,
-              width: 200,
-              height: 200,
-              margins: {
-                left: 10,
-                right: 10,
-                bottom: 10,
-                top: 10
-              },
-              cols: [0, 0],
-              vals: 'dna methylation'
-            },
-            decorators: {
-              cls: [
-                'vs-window',
-                'vs-resizable',
-                'vs-movable'
-              ],
-              elem: [
-                {
-                  cls: 'vs-axis',
-                  options: {
-                    type: 'x',
-                    ticks: 10
-                  }
-                },
-                {
-                  cls: 'vs-axis',
-                  options: {
-                    type: 'y'
-                  }
-                },
-                {
-                  cls: 'vs-grid',
-                  options: {
-                    type: 'x',
-                    ticks: 10
-                  }
-                },
-                {
-                  cls: 'vs-grid',
-                  options: {
-                    type: 'y'
-                  }
-                }
-              ]
-            }
-          },
-          {
-            construct: {
-              render: 'svg',
-              type: 'scatterplot'
-            },
-            options: {
-              doubleBuffer: false,
-              axisBoundaries: {},
-              x: 220,
-              y: 60,
-              width: 200,
-              height: 200,
-              margins: {
-                left: 10,
-                right: 10,
-                bottom: 10,
-                top: 10
-              },
-              cols: [0, 1],
-              vals: 'dna methylation'
-            },
-            decorators: {
-              cls: [
-                'vs-window',
-                'vs-resizable',
-                'vs-movable'
-              ],
-              elem: [
-                {
-                  cls: 'vs-axis',
-                  options: {
-                    type: 'x',
-                    ticks: 10
-                  }
-                },
-                {
-                  cls: 'vs-axis',
-                  options: {
-                    type: 'y'
-                  }
-                },
-                {
-                  cls: 'vs-grid',
-                  options: {
-                    type: 'x',
-                    ticks: 10
-                  }
-                },
-                {
-                  cls: 'vs-grid',
-                  options: {
-                    type: 'y'
-                  }
-                }
-              ]
-            }
-          },
-          {
-            construct: {
-              render: 'canvas',
-              type: 'manhattan'
-            },
-            options: {
-              doubleBuffer: true,
-              xBoundries: {min: 1000, max: 100000},
-              yBoundaries: {min: 0, max: 1},
-              x: 430,
-              y: 60,
-              width: 400,
-              height: 200,
-              margins: {
-                left: 10,
-                right: 10,
-                bottom: 10,
-                top: 10
-              },
-              cols: [0, 1],
-              vals: 'v0',
-              rows: ['start', 'end']
-            },
-            decorators: {
-              cls: [
-                'vs-window',
-                'vs-resizable',
-                'vs-movable'
-              ],
-              elem: [
-                {
-                  cls: 'vs-axis',
-                  options: {
-                    type: 'x',
-                    ticks: 10
-                  }
-                },
-                {
-                  cls: 'vs-axis',
-                  options: {
-                    type: 'y'
-                  }
-                },
-                {
-                  cls: 'vs-grid',
-                  options: {
-                    type: 'x',
-                    ticks: 10
-                  }
-                },
-                {
-                  cls: 'vs-grid',
-                  options: {
-                    type: 'y'
-                  }
-                }
-              ]
-            }
-          },
-          {
-            construct: {
-              render: 'svg',
-              type: 'manhattan'
-            },
-            options: {
-              xBoundries: {min: 1000, max: 100000},
-              yBoundaries: {min: 0, max: 1},
-              x: 430,
-              y: 290,
-              width: 400,
-              height: 200,
-              margins: {
-                left: 10,
-                right: 10,
-                bottom: 10,
-                top: 10
-              },
-              cols: [0, 1],
-              vals: 'v0',
-              rows: ['start', 'end']
-            },
-            decorators: {
-              cls: [
-                'vs-window',
-                'vs-resizable',
-                'vs-movable'
-              ],
-              elem: [
-                {
-                  cls: 'vs-axis',
-                  options: {
-                    type: 'x',
-                    ticks: 10
-                  }
-                },
-                {
-                  cls: 'vs-axis',
-                  options: {
-                    type: 'y'
-                  }
-                },
-                {
-                  cls: 'vs-grid',
-                  options: {
-                    type: 'x',
-                    ticks: 10
-                  }
-                },
-                {
-                  cls: 'vs-grid',
-                  options: {
-                    type: 'y'
-                  }
-                }
-              ]
-            }
-          }
-        ],
-        data: u.reflection.wrap({
-          query: [
-            new vs.models.Query({target: 'rows', targetLabel: 'chr', test: '==', testArgs: 'chr1'}),
-            new vs.models.Query({target: 'rows', targetLabel: 'start', test: '<', testArgs: 20}),
-            new vs.models.Query({target: 'rows', targetLabel: 'end', test: '>=', testArgs: 10})
-          ],
-          nrows: 2,
-          ncols: 4,
-          cols: [
-            { label: 'name', d: ['florin','suze','wouter','apas'] },
-            { label: 'id', d: [1,2,3,4] },
-            { label: 'age', d: [30,24,35,22] },
-            { label: 'sex', d: ['m','f','m','m'] }
-          ],
-          rows: [
-            { label: 'name', d: ['gene1','gene2'] },
-            { label: 'id', d: [1,2] },
-            { label: 'start', d: [10,16] },
-            { label: 'end', d: [15,19] },
-            { label: 'chr', d: ['chr1','chr1'] }
-          ],
-          vals: [
-            {
-              label: 'gene expression',
-              d: [0.67, 0.309, 0.737, 0.688, 0.011, 0.303, 0.937, 0.06],
-              boundaries: { min: 0, max: 1 }
-            },
-            {
-              label: 'dna methylation',
-              d: [0.625, 0.998, 0.66, 0.595, 0.254, 0.849, 0.374, 0.701],
-              boundaries: { min: 0, max: 1 }
-            }
-          ]
-        }, vs.models.DataSource)
-      }, vs.ui.DataHandler),*/
       u.reflection.wrap({
         name: 'Other data',
         children: [],
@@ -503,7 +234,7 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
               ]
             }
           },
-          {
+          /*{
             construct: {
               render: 'svg',
               type: 'manhattan'
@@ -562,7 +293,7 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
                 }
               ]
             }
-          },
+          },*/
           {
             construct: {
               render: 'svg',
@@ -591,6 +322,42 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
                 'vs-movable'
               ],
               elem: []
+            }
+          },
+          {
+            construct: {
+              render: 'svg',
+              type: 'binaryplot'
+            },
+            options: {
+              yBoundaries: {min: 0, max: 1},
+              x: 430,
+              y: 290,
+              width: 400,
+              height: 200,
+              margins: {
+                left: 10,
+                right: 10,
+                bottom: 10,
+                top: 10
+              },
+              cols: ['sample2','sample1'],
+              yVal: 'gwasPval',
+              fills: function() { return palette; },
+              fillOpacity: 1,
+              strokes: function() { return palette; },
+              shapeSize: 30,
+              shape: '\uf183',
+              separator: function() { return function(x) { return x > 0.5; }}
+            },
+            decorators: {
+              cls: [
+                'vs-window',
+                'vs-resizable',
+                'vs-movable'
+              ],
+              elem: [
+              ]
             }
           }
         ],
@@ -1532,7 +1299,143 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
             }
           }, vs.models.DataSource)
         ]
-      }, vs.ui.DataHandler)
+      }, vs.ui.DataHandler),
+      /*u.reflection.wrap({
+        name: 'Americans who relocate yearly',
+        children: [],
+        dataChanged: new u.Event(),
+        visualizations: [
+          {
+            construct: {
+              render: 'svg',
+              type: 'binaryplot'
+            },
+            options: {
+              yBoundaries: {min: 0, max: 1},
+              x: 0,
+              y: 0,
+              width: 583,
+              height: 160,
+              margins: {
+                left: 10,
+                right: 10,
+                bottom: 10,
+                top: 10
+              },
+              cols: ['sample1'],
+              yVal: 'isset',
+              //fills: function() { return palette; },
+              //strokes: function() { return palette; },
+              fillOpacity: 1,
+
+              shapeSize: 30,
+              shape: '\uf183',
+              separator: function() { return function(x) { return x; }},
+              fills: function() { return function() { return '#9c27b0'; }},
+              strokes: function() { return function() { return '#2196f3'; }},
+              strokeThickness: 0.5
+            },
+            decorators: {
+              cls: [
+                'vs-window',
+                'vs-resizable',
+                'vs-movable'
+              ],
+              elem: [
+              ]
+            }
+          }
+        ],
+        data: [
+          u.reflection.wrap({
+            "id": "sample1",
+            "label": "disease1",
+            "state": "static",
+            "rowMetadata": [
+              {
+                "label": "index"
+              },
+              {
+                "label": "isset"
+              }
+            ],
+            "d": u.array.range(100).map(function(i) { return { index: i, '__d__': 'sample1', isset: i >= 49 }; }),
+            "query": [],
+            "metadata": {
+              "name": "disease1",
+              "id": 1
+            }
+          }, vs.models.DataSource)
+        ]
+      }, vs.ui.DataHandler),
+      u.reflection.wrap({
+        name: 'Students who study out of state',
+        children: [],
+        dataChanged: new u.Event(),
+        visualizations: [
+          {
+            construct: {
+              render: 'svg',
+              type: 'binaryplot'
+            },
+            options: {
+              yBoundaries: {min: 0, max: 1},
+              x: 0,
+              y: 0,
+              width: 583,
+              height: 160,
+              margins: {
+                left: 10,
+                right: 10,
+                bottom: 10,
+                top: 10
+              },
+              cols: ['sample1'],
+              yVal: 'isset',
+              //fills: function() { return palette; },
+              //strokes: function() { return palette; },
+              fillOpacity: 1,
+
+              shapeSize: 30,
+              shape: '\uf183',
+              separator: function() { return function(x) { return x; }},
+              fills: function() { return function() { return '#2196f3'; }},
+              strokes: function() { return function() { return '#2196f3'; }},
+              strokeThickness: 0.5
+            },
+            decorators: {
+              cls: [
+                'vs-window',
+                'vs-resizable',
+                'vs-movable'
+              ],
+              elem: [
+              ]
+            }
+          }
+        ],
+        data: [
+          u.reflection.wrap({
+            "id": "sample1",
+            "label": "disease1",
+            "state": "static",
+            "rowMetadata": [
+              {
+                "label": "index"
+              },
+              {
+                "label": "isset"
+              }
+            ],
+            "d": u.array.range(100).map(function(i) { return { index: i, '__d__': 'sample1', isset: i >= 75 }; }),
+            "query": [],
+            "metadata": {
+              "name": "disease1",
+              "id": 1
+            }
+          }, vs.models.DataSource)
+        ]
+      }, vs.ui.DataHandler)*/
     ]
   };
 }]);
@@ -1542,9 +1445,9 @@ main.controller('vs.DataContextController', ['$scope', function($scope) {
   var dataHandler = $scope['vsDataContext'].handler;
   var $window = $scope['vsWindow'].$window;
   var data = dataHandler.data;
-  var range = vs.models.GenomicRangeQuery.extract(data[0].query);
+  // var range = vs.models.GenomicRangeQuery.extract(data[0].query);
   $scope.name = dataHandler.name;
-  $scope.location = goog.string.format('%s:%s-%s', range.chr, range.start, range.end);
+  //$scope.location = goog.string.format('%s:%s-%s', range.chr, range.start, range.end);
 
   var regex = /^\s*([a-zA-Z0-9]+)\s*\:\s*([0-9]+)\s*\-\s*([0-9]+)\s*$/;
 

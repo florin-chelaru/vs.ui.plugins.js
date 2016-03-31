@@ -242,6 +242,7 @@ vs.ui.plugins.canvas.ScatterPlot = (function() {
    * @returns {Array.<Object>}
    */
   ScatterPlot.prototype.getItemsAt = function(x, y) {
+    console.log(x, y);
     if (!this[_quadTree]) { return []; }
     var cols = /** @type {Array.<string>} */ (this.optionValue('cols'));
     var xCol = cols[0];

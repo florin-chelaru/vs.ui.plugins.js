@@ -127,11 +127,11 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
     var self = this;
     var args = arguments;
     return new Promise(function(resolve, reject) {
-      /** @type {Array.<vs.models.DataSource>} */
-      var data = self.data;
 
       var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
-      data = data.filter(function(d) { return cols.indexOf(d.id) >= 0; });
+
+      /** @type {Array.<vs.models.DataSource>} */
+      var data = self.data.filter(function(d) { return cols.indexOf(d.id) >= 0; });
 
       // Nothing to draw
       if (!data.length || !vs.models.DataSource.allDataIsReady(data)) { resolve(); return; }
@@ -217,6 +217,9 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
     var selectFill = /** @type {string} */ (this.optionValue('selectFill'));
     var selectStroke = /** @type {string} */ (this.optionValue('selectStroke'));
     var selectStrokeThickness = /** @type {number} */ (this.optionValue('selectStrokeThickness'));
+
+    var colsMap = u.mapToObject(cols, function(col) { return {'key': col, 'value': true}; });
+    objects = objects.filter(function(o) { return o['__d__'] in colsMap; });
 
     var transform =
       vs.models.Transformer

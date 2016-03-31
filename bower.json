@@ -22,7 +22,7 @@
     "tests"
   ],
   "dependencies": {
-    "vis.js": "git://github.com/florin-chelaru/vis.js.git",
+    "vis.js": "git://github.com/florin-chelaru/vis.js.git"
   },
 
   "devDependencies": {
