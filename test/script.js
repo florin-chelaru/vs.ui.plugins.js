@@ -92,13 +92,15 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
                   cls: 'vs-axis',
                   options: {
                     type: 'x',
-                    ticks: 10
+                    ticks: 10,
+                    label: true
                   }
                 },
                 {
                   cls: 'vs-axis',
                   options: {
-                    type: 'y'
+                    type: 'y',
+                    label: true
                   }
                 },
                 {
