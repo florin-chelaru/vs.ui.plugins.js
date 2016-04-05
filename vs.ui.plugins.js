@@ -33,10 +33,7 @@ if (COMPILED) {
   u.extend(vs.ui, this['vs']['ui']);
 }).call(this);
 
-/*
-* John La
-* LinePlot on Canvas
-*/
+
 
 goog.provide('vs.ui.plugins.canvas.Line');
 
@@ -44,18 +41,25 @@ if (COMPILED) {
     goog.require('vs.ui');
 }
 
+// Because vs.models.DataSource is defined in another library (vis.js), there is no way for the Google Closure compiler
+// to know the names of the private variables of that class. Therefore, when overriding this class, we need to declare
+// private variables in a private scope (closure), using Symbols (ES6), so we don't accidentally replace existing
+// private members.
+
 /**
  * @constructor
  * @extends vs.ui.canvas.CanvasVis
  */
 vs.ui.plugins.canvas.Line = (function() {
-    var _quadTree = Symbol('_quadTree');
+   var _quadTree = Symbol('_quadTree');
+
     /**
      * @constructor
      * @extends vs.ui.canvas.CanvasVis
      */
     var Line = function() {
         vs.ui.canvas.CanvasVis.apply(this, arguments);
+
         /**
          * @type {u.QuadTree}
          * @private
@@ -71,24 +75,12 @@ vs.ui.plugins.canvas.Line = (function() {
     Line.Settings = u.extend({}, vs.ui.canvas.CanvasVis.Settings, {
         'rows': vs.ui.Setting.PredefinedSettings['rows'],
         'vals': vs.ui.Setting.PredefinedSettings['vals'],
-        'xBoundaries': new vs.ui.Setting({
-            key: 'xBoundaries',
-            type: 'vs.models.Boundaries',
-            defaultValue: vs.ui.Setting.rowBoundaries,
-            label: 'x boundaries',
-            template: '_boundaries.html'
-        }),
+        'xBoundaries': new vs.ui.Setting({key:'xBoundaries', type:'vs.models.Boundaries', defaultValue:vs.ui.Setting.rowBoundaries, label:'x boundaries', template:'_boundaries.html'}),
         'yBoundaries': vs.ui.Setting.PredefinedSettings['yBoundaries'],
         'xScale': vs.ui.Setting.PredefinedSettings['xScale'],
         'yScale': vs.ui.Setting.PredefinedSettings['yScale'],
         'cols': vs.ui.Setting.PredefinedSettings['cols'],
-        'itemRatio': new vs.ui.Setting({
-            'key': 'itemRatio',
-            'type': vs.ui.Setting.Type.NUMBER,
-            'defaultValue': 0.015,
-            'label': 'item ratio',
-            'template': '_number.html'
-        }),
+        'itemRatio': new vs.ui.Setting({'key':'itemRatio', 'type':vs.ui.Setting.Type.NUMBER, 'defaultValue': 0.015, 'label':'item ratio', 'template':'_number.html'}),
         'fill': vs.ui.Setting.PredefinedSettings['fill'],
         'stroke': vs.ui.Setting.PredefinedSettings['stroke'],
         'strokeThickness': vs.ui.Setting.PredefinedSettings['strokeThickness'],
@@ -98,11 +90,7 @@ vs.ui.plugins.canvas.Line = (function() {
     });
 
     Object.defineProperties(Line.prototype, {
-        'settings': {
-            get: /** @type {function (this:Line)} */ (function () {
-                return Line.Settings;
-            })
-        }
+        'settings': { get: /** @type {function (this:Line)} */ (function() { return Line.Settings; })}
     });
 
     Line.prototype.beginDraw = function() {
@@ -154,14 +142,12 @@ vs.ui.plugins.canvas.Line = (function() {
         });
     };
 
-    Line.prototype.endDraw = function () {
+    Line.prototype.endDraw = function() {
         var self = this;
         var args = arguments;
         return new Promise(function(resolve, reject) {
             /** @type {vs.models.DataSource} */
             var data = self.data;
-            var colorOption = ["blue", "red"];
-
             if (!self.data.isReady) { resolve(); return; }
 
             // Nothing to draw
@@ -188,23 +174,96 @@ vs.ui.plugins.canvas.Line = (function() {
                 vs.models.Transformer
                     .scale(xScale, yScale)
                     .translate({'x': margins.left, 'y': margins.top});
-
             var items = data.asDataRowArray();
+            var colorOption = ['red', 'blue'];
 
+            for(var j = 0; j < colorOption.length; j++) {
+                var startPoint = transform.calc({
+                    x: parseFloat(items[0].info(row)),
+                    y: items[0].val(cols[j], valsLabel)
+                });
+                console.log(items[0].info(row), items[0].val(cols[j],valsLabel));
+                context.lineWidth = strokeThickness;
+                context.strokeStyle = colorOption[j];
+                context.beginPath();
+                context.moveTo(startPoint.x, startPoint.y);
+
+                for (var i = 0; i < items.length; i++) {
+                    var point = transform.calc({
+                        x: parseFloat(items[i].info(row)),
+                        y: items[i].val(cols[j], valsLabel)
+                    });
+                    context.lineTo(point.x, point.y);
+                    context.stroke();
+                    context.closePath();
+                    context.beginPath();
+                    context.moveTo(point.x, point.y);
+                }
+
+                context.closePath();
+            }
+
+
+            /*
+            // ... draw them asynchronously, which takes a bit longer, but keeps the UI responsive
             u.async.each(items, function(d) {
-                return new Promise(function(drawResolve, drawReject) {
-                    setTimeout(function () {
-
-                        drawResolve();
+                return new Promise(function(drawCircleResolve, drawCircleReject) {
+                    setTimeout(function() {
+                        drawCircleResolve();
                     }, 0);
                 });
-            }).then(resolve, reject);
+            }).then(resolve, reject);*/
+            resolve();
         }).then(function() {
             return vs.ui.canvas.CanvasVis.prototype.endDraw.apply(self, args);
         });
-    };
-})();
 
+        /**
+         * @param {number} x
+         * @param {number} y
+         * @returns {Array.<vs.models.DataRow>}
+         */
+        Line.prototype.getItemsAt = function(x, y) {
+            if (!this[_quadTree]) { return []; }
+            return this[_quadTree].collisions(x, y).map(function(v) { return v.value; });
+        };
+
+
+        /**
+         * @param {HTMLElement} canvas
+         * @param {vs.models.DataRow} d
+         */
+        Line.prototype.highlightItem = function(canvas, d) {
+            var self = this;
+            var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
+            var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
+            var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
+            var cols = /** @type {Array.<string>} */ (self.optionValue('cols'));
+            var row = (/** @type {Array.<string>} */ (self.optionValue('rows')))[0];
+            var valsLabel = /** @type {string} */ (self.optionValue('vals'));
+            var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
+            var width = /** @type {number} */ (self.optionValue('width'));
+            var height = /** @type {number} */ (self.optionValue('height'));
+            var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
+
+            var selectFill = /** @type {string} */ (this.optionValue('selectFill'));
+            var selectStroke = /** @type {string} */ (this.optionValue('selectStroke'));
+            var selectStrokeThickness = /** @type {number} */ (this.optionValue('selectStrokeThickness'));
+
+            var transform =
+                vs.models.Transformer
+                    .scale(xScale, yScale)
+                    .translate({'x': margins.left, 'y': margins.top});
+
+            var point = transform.calc({x: parseFloat(d.info(row)), y: d.val(cols[0], valsLabel)});
+
+            var context = canvas.getContext('2d');
+            vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, selectFill, selectStroke, selectStrokeThickness);
+        };
+    };
+
+    return Line;
+})();
 
 
 goog.provide('vs.ui.plugins.canvas.ManhattanPlot');
@@ -790,8 +849,6 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                     d0 = xArray[index1 - 1],
                     d1 = xArray[index1],
                     d2 = x0 - d0 > d1 - x0 ? d1 : d0;
-
-                console.log(index1);
 
                     if(d2 == d0){
                         var showIndex = index1 - 1;

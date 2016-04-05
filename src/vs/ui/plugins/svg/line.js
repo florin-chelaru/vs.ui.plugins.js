@@ -177,8 +177,6 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                     d1 = xArray[index1],
                     d2 = x0 - d0 > d1 - x0 ? d1 : d0;
 
-                console.log(index1);
-
                     if(d2 == d0){
                         var showIndex = index1 - 1;
                     } else {
