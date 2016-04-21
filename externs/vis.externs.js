@@ -31,6 +31,94 @@ decorators: {}
 
 
 /**
+ * @param {function():Promise} func
+ * @param {Object} [thisArg]
+ * @constructor
+ */
+vs.async.Task = function(func, thisArg) {};
+
+/**
+ * @type {number}
+ * @name vs.async.Task#id
+ */
+vs.async.Task.prototype.id;
+
+/**
+ * @type {Object|undefined}
+ * @name vs.async.Task#thisArg
+ */
+vs.async.Task.prototype.thisArg;
+
+/**
+ * @type {function():Promise}
+ * @name vs.async.Task#func
+ */
+vs.async.Task.prototype.func;
+
+/**
+ * @type {vs.async.Task}
+ * @name vs.async.Task#prev
+ */
+vs.async.Task.prototype.prev;
+
+/**
+ * @type {vs.async.Task}
+ * @name vs.async.Task#next
+ */
+vs.async.Task.prototype.next;
+
+/**
+ * @type {vs.async.Task}
+ * @name vs.async.Task#first
+ */
+vs.async.Task.prototype.first;
+
+/**
+ * @type {vs.async.Task}
+ * @name vs.async.Task#last
+ */
+vs.async.Task.prototype.last;
+/**
+ * @type {number}
+ * @private
+ */
+vs.async.Task._nextId = 0;
+
+/**
+ * @returns {number}
+ */
+vs.async.Task.nextId = function() {};
+
+
+/**
+ * @param {function(Function, number)} $timeout Angular timeout service
+ * @constructor
+ */
+vs.async.TaskService = function($timeout) {};
+
+/**
+ * @param {function():Promise} func
+ * @param {Object} [thisArg]
+ */
+vs.async.TaskService.prototype.createTask = function(func, thisArg) {};
+
+/**
+ * @param {vs.async.Task|function():Promise} t1
+ * @param {vs.async.Task|function():Promise} t2
+ * @returns {vs.async.Task}
+ */
+vs.async.TaskService.prototype.chain = function(t1, t2) {};
+
+/**
+ * TODO: test!
+ * @param {vs.async.Task} task
+ * @param {boolean} [sequential] If true, the tasks will run sequentially
+ * @returns {Promise}
+ */
+vs.async.TaskService.prototype.runChain = function(task, sequential) {};
+
+
+/**
  * Argument details:
  *  - target: if defined, the label of the row/column/value array to test; if undefined, the index within the current structure is used
  *  - test: the filter to be applied on the data (>, <, ==, etc)
@@ -192,26 +280,15 @@ vs.models.DataSource.combinedArrayMetadata = function(datas) {};
  */
 vs.models.DataSource.allDataIsReady = function(datas) {};
 
-
 /**
- * @constructor
- * @extends {ngu.Configuration}
+ * @enum {string}
  */
-vs.linking.LinkProvider = function() {};
-
-/**
- * @param {string} dataId1
- * @param {string} dataId2
- * @param {function(vs.models.DataSource, Array.<Object>, vs.models.DataSource): Array.<Object>} link (d1, obj1, d2) => obj2
- */
-vs.linking.LinkProvider.prototype.register = function(dataId1, dataId2, link) {};
-
-/**
- * @param {vs.ui.BrushingEvent} brushingEvent
- * @param {Array.<vs.models.DataSource>} data
- * @returns {Array.<Object>}
- */
-vs.linking.LinkProvider.prototype.brushingObjects = function(brushingEvent, data) {};
+vs.models.DataSource.FieldType = {
+  'STRING': 'string',
+  'NUMBER': 'number',
+  'BOOLEAN': 'boolean',
+  'FACTOR': 'factor'
+};
 
 
 /**
@@ -231,6 +308,28 @@ vs.ui.BrushingEvent.Action = {
   'SELECT': 'select',
   'DESELECT': 'deselect'
 };
+
+
+/**
+ * @param {number} [min]
+ * @param {number} [max]
+ * @constructor
+ */
+vs.models.Boundaries = function(min, max) {};
+
+/**
+ * @type {number}
+ * @name vs.models.Boundaries#min
+ */
+vs.models.Boundaries.prototype.min;
+
+/**
+ * @type {number}
+ * @name vs.models.Boundaries#max
+ */
+vs.models.Boundaries.prototype.max;
+
+
 
 
 /**
@@ -289,28 +388,6 @@ vs.models.Margins.prototype.add = function(offset) {};
 vs.models.Margins.prototype.equals = function(other) {};
 
 
-/**
- * @param {number} [min]
- * @param {number} [max]
- * @constructor
- */
-vs.models.Boundaries = function(min, max) {};
-
-/**
- * @type {number}
- * @name vs.models.Boundaries#min
- */
-vs.models.Boundaries.prototype.min;
-
-/**
- * @type {number}
- * @name vs.models.Boundaries#max
- */
-vs.models.Boundaries.prototype.max;
-
-
-
-
 //region goog...
 // for predefined 'settings':
 //endregion
@@ -323,7 +400,8 @@ vs.models.Boundaries.prototype.max;
  *  label: (string|undefined),
  *  template: (string|undefined),
  *  hidden: (boolean|undefined),
- *  possibleValues: (Array|function(Object.<string, *>, *, Array.<vs.models.DataSource>, Object.<string, vs.ui.Setting>)|undefined)
+ *  possibleValues: (*|function(Object.<string, *>, *, Array.<vs.models.DataSource>, Object.<string, vs.ui.Setting>)|undefined),
+ *  dependencies: (Object.<string, string>|undefined)
  * }} args
  * @constructor
  */
@@ -348,6 +426,21 @@ vs.ui.Setting.prototype.getValue = function(options, $attrs, data, settings) {};
  * @returns {*}
  */
 vs.ui.Setting.prototype.possibleValues = function(options, $attrs, data, settings) {};
+
+/**
+ * @param {{
+ *  key: string,
+ *  type: (vs.ui.Setting.Type|string|undefined),
+ *  defaultValue: (function(Object.<string, *>, *, Array.<vs.models.DataSource>, Object.<string, vs.ui.Setting>)|*),
+ *  label: (string|undefined),
+ *  template: (string|undefined),
+ *  hidden: (boolean|undefined),
+ *  possibleValues: (*|function(Object.<string, *>, *, Array.<vs.models.DataSource>, Object.<string, vs.ui.Setting>)|undefined),
+ *  dependencies: (Object.<string, string>|undefined)
+ * }} options
+ */
+vs.ui.Setting.prototype.copy = function(options) {};
+
 //endregion
 
 //region Nested Types
@@ -369,74 +462,94 @@ vs.ui.Setting.Type = {
 //endregion
 
 //region Static Methods
+
 /**
  * @param {Array.<vs.models.DataSource>} data
+ * @param {string} rowMetadataLabel
+ * @returns {vs.models.DataSource.FieldType}
  */
-vs.ui.Setting.getAllRowMetadata = function(data) {};
+vs.ui.Setting.metadataType = function(data, rowMetadataLabel) {};
 
 /**
- * @param {string} dep
+ * @param {vs.ui.Setting} setting
+ * @param {string} metadataField
  * @param {Object.<string, *>} options
  * @param $attrs Angular attrs
  * @param {Array.<vs.models.DataSource>} [data]
  * @param {Object.<string, vs.ui.Setting>} [settings]
  * @returns {*}
  */
-vs.ui.Setting.boundaries = function (dep, options, $attrs, data, settings) {};
+vs.ui.Setting.boundaries = function (setting, metadataField, options, $attrs, data, settings) {};
 
 /**
+ * @param {vs.ui.Setting} setting
  * @param {Object.<string, *>} options
  * @param $attrs Angular attrs
  * @param {Array.<vs.models.DataSource>} [data]
  * @param {Object.<string, vs.ui.Setting>} [settings]
  * @returns {*}
  */
-vs.ui.Setting.xBoundaries = function (options, $attrs, data, settings) {};
+vs.ui.Setting.xBoundaries = function (setting, options, $attrs, data, settings) {};
 
 /**
+ * @param {vs.ui.Setting} setting
  * @param {Object.<string, *>} options
  * @param $attrs Angular attrs
  * @param {Array.<vs.models.DataSource>} [data]
  * @param {Object.<string, vs.ui.Setting>} [settings]
  * @returns {*}
  */
-vs.ui.Setting.yBoundaries = function (options, $attrs, data, settings) {};
+vs.ui.Setting.yBoundaries = function (setting, options, $attrs, data, settings) {};
 
 /**
+ * @param {vs.ui.Setting} setting
  * @param {Object.<string, *>} options
  * @param $attrs Angular attrs
  * @param {Array.<vs.models.DataSource>} [data]
  * @param {Object.<string, vs.ui.Setting>} [settings]
  * @returns {*}
  */
-vs.ui.Setting.firstColsId = function (options, $attrs, data, settings) {};
+vs.ui.Setting.firstColsId = function (setting, options, $attrs, data, settings) {};
 
 /**
+ * @param {vs.ui.Setting} setting
  * @param {Object.<string, *>} options
  * @param $attrs Angular attrs
  * @param {Array.<vs.models.DataSource>} [data]
  * @param {Object.<string, vs.ui.Setting>} [settings]
  * @returns {*}
  */
-vs.ui.Setting.firstRowsLabel = function (options, $attrs, data, settings) {};
+vs.ui.Setting.firstRowsLabel = function (setting, options, $attrs, data, settings) {};
 
 /**
+ * @param {vs.ui.Setting} setting
  * @param {Object.<string, *>} options
  * @param $attrs Angular attrs
  * @param {Array.<vs.models.DataSource>} [data]
  * @param {Object.<string, vs.ui.Setting>} [settings]
  * @returns {*}
  */
-vs.ui.Setting.xScale = function (options, $attrs, data, settings) {};
+vs.ui.Setting.firstRowsLabelNumeric = function (setting, options, $attrs, data, settings) {};
 
 /**
+ * @param {vs.ui.Setting} setting
  * @param {Object.<string, *>} options
  * @param $attrs Angular attrs
  * @param {Array.<vs.models.DataSource>} [data]
  * @param {Object.<string, vs.ui.Setting>} [settings]
  * @returns {*}
  */
-vs.ui.Setting.yScale = function (options, $attrs, data, settings) {};
+vs.ui.Setting.xScale = function (setting, options, $attrs, data, settings) {};
+
+/**
+ * @param {vs.ui.Setting} setting
+ * @param {Object.<string, *>} options
+ * @param $attrs Angular attrs
+ * @param {Array.<vs.models.DataSource>} [data]
+ * @param {Object.<string, vs.ui.Setting>} [settings]
+ * @returns {*}
+ */
+vs.ui.Setting.yScale = function (setting, options, $attrs, data, settings) {};
 
 /**
  * @const {function(*):string}
@@ -444,20 +557,21 @@ vs.ui.Setting.yScale = function (options, $attrs, data, settings) {};
 vs.ui.Setting.defaultPalette = d3.scale.category20();
 
 /**
+ * @param {vs.ui.Setting} setting
  * @param {Object.<string, *>} options
  * @param $attrs Angular attrs
  * @param {Array.<vs.models.DataSource>} [data]
  * @param {Object.<string, vs.ui.Setting>} [settings]
  * @returns {*}
  */
-vs.ui.Setting.mergeColsDefault = function (options, $attrs, data, settings) {};
+vs.ui.Setting.mergeColsDefault = function (setting, options, $attrs, data, settings) {};
 
 /**
- * @param {string} xVal
+ * @param {string} xField
  * @param {Array.<vs.models.DataSource>} ds
  * @returns {vs.models.DataSource}
  */
-vs.ui.Setting.mergeCols = function(xVal, ds) {};
+vs.ui.Setting.mergeCols = function(xField, ds) {};
 //endregion
 
 //region Constants
@@ -466,94 +580,6 @@ vs.ui.Setting.mergeCols = function(xVal, ds) {};
  */
 vs.ui.Setting.PredefinedSettings = {};
 //endregion
-
-
-/**
- * @param {function():Promise} func
- * @param {Object} [thisArg]
- * @constructor
- */
-vs.async.Task = function(func, thisArg) {};
-
-/**
- * @type {number}
- * @name vs.async.Task#id
- */
-vs.async.Task.prototype.id;
-
-/**
- * @type {Object|undefined}
- * @name vs.async.Task#thisArg
- */
-vs.async.Task.prototype.thisArg;
-
-/**
- * @type {function():Promise}
- * @name vs.async.Task#func
- */
-vs.async.Task.prototype.func;
-
-/**
- * @type {vs.async.Task}
- * @name vs.async.Task#prev
- */
-vs.async.Task.prototype.prev;
-
-/**
- * @type {vs.async.Task}
- * @name vs.async.Task#next
- */
-vs.async.Task.prototype.next;
-
-/**
- * @type {vs.async.Task}
- * @name vs.async.Task#first
- */
-vs.async.Task.prototype.first;
-
-/**
- * @type {vs.async.Task}
- * @name vs.async.Task#last
- */
-vs.async.Task.prototype.last;
-/**
- * @type {number}
- * @private
- */
-vs.async.Task._nextId = 0;
-
-/**
- * @returns {number}
- */
-vs.async.Task.nextId = function() {};
-
-
-/**
- * @param {function(Function, number)} $timeout Angular timeout service
- * @constructor
- */
-vs.async.TaskService = function($timeout) {};
-
-/**
- * @param {function():Promise} func
- * @param {Object} [thisArg]
- */
-vs.async.TaskService.prototype.createTask = function(func, thisArg) {};
-
-/**
- * @param {vs.async.Task|function():Promise} t1
- * @param {vs.async.Task|function():Promise} t2
- * @returns {vs.async.Task}
- */
-vs.async.TaskService.prototype.chain = function(t1, t2) {};
-
-/**
- * TODO: test!
- * @param {vs.async.Task} task
- * @param {boolean} [sequential] If true, the tasks will run sequentially
- * @returns {Promise}
- */
-vs.async.TaskService.prototype.runChain = function(task, sequential) {};
 
 
 //region goog...
@@ -575,6 +601,12 @@ vs.ui.VisHandler.Settings = {};
 //endregion
 
 //region Properties
+
+/**
+ * @type {string}
+ * @name vs.ui.VisHandler#id
+ */
+vs.ui.VisHandler.prototype.id;
 
 /**
  * @type {string}
@@ -735,6 +767,14 @@ vs.ui.VisHandler.prototype.preProcessData = function() {};
 
 
 /**
+ * @param {string} message
+ * @param {Error} [innerException]
+ * @constructor
+ * @extends u.Exception
+ */
+vs.ui.UiException = function(message, innerException) {};
+
+/**
  * @constructor
  * @extends {ngu.Configuration}
  */
@@ -750,14 +790,6 @@ vs.Configuration.prototype.options;
  */
 vs.Configuration.prototype.customize = function(options) {};
 
-
-/**
- * @param {string} message
- * @param {Error} [innerException]
- * @constructor
- * @extends u.Exception
- */
-vs.ui.UiException = function(message, innerException) {};
 
 /**
  * @param {vs.Configuration} config
@@ -789,6 +821,27 @@ vs.ui.VisualizationFactory.prototype.createNew = function($scope, $element, $att
 
 
 /**
+ * @constructor
+ * @extends {ngu.Configuration}
+ */
+vs.linking.LinkProvider = function() {};
+
+/**
+ * @param {string} dataId1
+ * @param {string} dataId2
+ * @param {function(vs.models.DataSource, Array.<Object>, vs.models.DataSource): Array.<Object>} link (d1, obj1, d2) => obj2
+ */
+vs.linking.LinkProvider.prototype.register = function(dataId1, dataId2, link) {};
+
+/**
+ * @param {vs.ui.BrushingEvent} brushingEvent
+ * @param {Array.<vs.models.DataSource>} data
+ * @returns {Array.<Object>}
+ */
+vs.linking.LinkProvider.prototype.brushingObjects = function(brushingEvent, data) {};
+
+
+/**
  * @param {angular.Scope} $scope
  * @param {vs.ui.VisualizationFactory} visualizationFactory
  * @param {vs.async.TaskService} taskService
@@ -817,13 +870,78 @@ vs.directives.Visualization.prototype.link;
 
 
 /**
+ * @param {{render: string, type: string}} construct
+ * @param {Object.<string, *>} [options]
+ * @param {{cls: Array.<string>, elem: Array.<{cls: string, options: Object.<string, *>}>}} [decorators]
+ * @param {string} [id]
+ * @constructor
+ */
+vs.ui.VisualContext = function(construct, options, decorators, id) {};
+
+
+/**
+ * @param {vs.ui.DataHandler|{data: Array.<vs.models.DataSource>, visualizations: (Array.<vs.ui.VisualContext>|undefined), children: (Array.<vs.ui.DataHandler>|undefined), name: (string|undefined)}} options
+ * @constructor
+ */
+vs.ui.DataHandler = function(options) {};
+
+/**
+ * @type {string}
+ * @name vs.ui.DataHandler#name
+ */
+vs.ui.DataHandler.prototype.name;
+
+/**
+ * @type {Array.<vs.models.DataSource>}
+ * @name vs.ui.DataHandler#data
+ */
+vs.ui.DataHandler.prototype.data;
+
+/**
+ * @type {u.Event.<vs.models.DataSource>}
+ * @name vs.ui.DataHandler#dataChanged
+ */
+vs.ui.DataHandler.prototype.dataChanged;
+
+/**
+ * @type {Array.<vs.ui.DataHandler>}
+ * @name vs.ui.DataHandler#children
+ */
+vs.ui.DataHandler.prototype.children;
+
+/**
+ * @type {Array.<vs.ui.VisualContext>}
+ * @name vs.ui.DataHandler#visualizations
+ */
+vs.ui.DataHandler.prototype.visualizations;
+/**
+ * @param {vs.models.Query|Array.<vs.models.Query>} queries
+ * @returns {Promise.<Array.<vs.models.DataSource>>}
+ */
+vs.ui.DataHandler.prototype.query = function(queries) {};
+
+
+/**
  * @param {angular.Scope} $scope
- * @param $document
+ * @param {angular.$compile} $compile
  * @constructor
  * @extends {ngu.Directive}
  */
-vs.directives.Movable = function($scope, $document) {};
+vs.directives.DataContext = function($scope, $compile) {};
 
+/**
+ * @type {vs.ui.DataHandler}
+ * @name vs.directives.DataContext#handler
+ */
+vs.directives.DataContext.prototype.handler;
+/*
+
+/!**
+ * @type {string}
+ * @name vs.directives.DataContext#template
+ *!/
+vs.directives.DataContext.prototype.template;
+*/
 /**
  * @param {angular.Scope} $scope
  * @param {jQuery} $element
@@ -831,16 +949,53 @@ vs.directives.Movable = function($scope, $document) {};
  * @param controller
  * @override
  */
-vs.directives.Movable.prototype.link = function($scope, $element, $attrs, controller) {};
+vs.directives.DataContext.prototype.link = function($scope, $element, $attrs, controller) {};
 
 
 /**
+ * @param {string} message
+ * @param {Error} [innerException]
  * @constructor
- * @extends vs.ui.VisHandler
+ * @extends u.Exception
  */
-vs.ui.svg.SvgVis = function () {};
+vs.models.ModelsException = function(message, innerException) {};
 
-vs.ui.svg.SvgVis.prototype.beginDraw = function () {};
+/**
+ * @param {string} chr
+ * @param {number} start
+ * @param {number} end
+ * @constructor
+ */
+vs.models.GenomicRangeQuery = function(chr, start, end) {};
+
+/**
+ * @type {string}
+ * @name vs.models.GenomicRangeQuery#chr
+ */
+vs.models.GenomicRangeQuery.prototype.chr;
+
+/**
+ * @type {number}
+ * @name vs.models.GenomicRangeQuery#start
+ */
+vs.models.GenomicRangeQuery.prototype.start;
+
+/**
+ * @type {number}
+ * @name vs.models.GenomicRangeQuery#end
+ */
+vs.models.GenomicRangeQuery.prototype.end;
+
+/**
+ * @type {Array.<vs.models.Query>}
+ * @name vs.models.GenomicRangeQuery#query
+ */
+vs.models.GenomicRangeQuery.prototype.query;
+/**
+ * @param {Array.<vs.models.Query>} query
+ * @returns {vs.models.GenomicRangeQuery}
+ */
+vs.models.GenomicRangeQuery.extract = function(query) {};
 
 
 /**
@@ -968,6 +1123,12 @@ vs.ui.decorators.Axis.prototype.ticks;
  * @name vs.ui.decorators.Axis#format
  */
 vs.ui.decorators.Axis.prototype.format;
+
+/**
+ * @type {string|boolean}
+ * @name vs.ui.decorators.Axis#label
+ */
+vs.ui.decorators.Axis.prototype.label;
 /**
  * @param {number} [x]
  * @param {number} [y]
@@ -1146,6 +1307,24 @@ vs.directives.Axis.prototype.createDecorator = function($ng, $targetElement, tar
 
 
 /**
+ * @param {angular.Scope} $scope
+ * @param $document
+ * @constructor
+ * @extends {ngu.Directive}
+ */
+vs.directives.Movable = function($scope, $document) {};
+
+/**
+ * @param {angular.Scope} $scope
+ * @param {jQuery} $element
+ * @param {angular.Attributes} $attrs
+ * @param controller
+ * @override
+ */
+vs.directives.Movable.prototype.link = function($scope, $element, $attrs, controller) {};
+
+
+/**
  * @param {{$scope: angular.Scope, $element: jQuery, $attrs: angular.Attributes, $timeout: angular.$timeout, taskService: vs.async.TaskService}} $ng
  * @param {jQuery} $targetElement
  * @param {vs.ui.VisHandler} target
@@ -1227,22 +1406,20 @@ vs.directives.Grid.prototype.createDecorator = function($ng, $targetElement, tar
 
 
 /**
- * @param {angular.Scope} $scope
- * @param {vs.async.TaskService} taskService
- * @param {angular.$timeout} $timeout
  * @constructor
  * @extends {ngu.Directive}
  */
-vs.directives.LoadingDecorator = function($scope, taskService, $timeout) {};
+vs.directives.Window = function() {};
 
 /**
- * @param {angular.Scope} $scope
- * @param {jQuery} $element
- * @param {angular.Attributes} $attrs
- * @param controller
- * @override
+ * @type {jQuery}
+ * @name vs.directives.Window#$window
  */
-vs.directives.LoadingDecorator.prototype.link = function($scope, $element, $attrs, controller) {};
+vs.directives.Window.prototype.$window;
+/**
+ * @type {{pre: (undefined|function(angular.Scope, jQuery, angular.Attributes, (*|undefined))), post: (undefined|function(angular.Scope, jQuery, angular.Attributes, (*|undefined)))}|function(angular.Scope, jQuery, angular.Attributes, (*|undefined))}
+ */
+vs.directives.Window.prototype.link;
 
 
 /**
@@ -1313,69 +1490,6 @@ vs.ui.canvas.CanvasVis.prototype._initializeBrushing = function() {};
  * @param {number} [strokeWidth]
  */
 vs.ui.canvas.CanvasVis.circle = function(context, cx, cy, r, fill, stroke, strokeWidth) {};
-
-
-/**
- * @constructor
- * @extends {ngu.Directive}
- */
-vs.directives.Window = function() {};
-
-/**
- * @type {jQuery}
- * @name vs.directives.Window#$window
- */
-vs.directives.Window.prototype.$window;
-/**
- * @type {{pre: (undefined|function(angular.Scope, jQuery, angular.Attributes, (*|undefined))), post: (undefined|function(angular.Scope, jQuery, angular.Attributes, (*|undefined)))}|function(angular.Scope, jQuery, angular.Attributes, (*|undefined))}
- */
-vs.directives.Window.prototype.link;
-
-
-/**
- * @param {string} message
- * @param {Error} [innerException]
- * @constructor
- * @extends u.Exception
- */
-vs.models.ModelsException = function(message, innerException) {};
-
-/**
- * @param {string} chr
- * @param {number} start
- * @param {number} end
- * @constructor
- */
-vs.models.GenomicRangeQuery = function(chr, start, end) {};
-
-/**
- * @type {string}
- * @name vs.models.GenomicRangeQuery#chr
- */
-vs.models.GenomicRangeQuery.prototype.chr;
-
-/**
- * @type {number}
- * @name vs.models.GenomicRangeQuery#start
- */
-vs.models.GenomicRangeQuery.prototype.start;
-
-/**
- * @type {number}
- * @name vs.models.GenomicRangeQuery#end
- */
-vs.models.GenomicRangeQuery.prototype.end;
-
-/**
- * @type {Array.<vs.models.Query>}
- * @name vs.models.GenomicRangeQuery#query
- */
-vs.models.GenomicRangeQuery.prototype.query;
-/**
- * @param {Array.<vs.models.Query>} query
- * @returns {vs.models.GenomicRangeQuery}
- */
-vs.models.GenomicRangeQuery.extract = function(query) {};
 
 
 /**
@@ -1486,74 +1600,32 @@ vs.directives.Resizable.BoundingBox.prototype.width;
  */
 vs.directives.Resizable.BoundingBox.prototype.height;
 /**
- * @param {{render: string, type: string}} construct
- * @param {Object.<string, *>} [options]
- * @param {{cls: Array.<string>, elem: Array.<{cls: string, options: Object.<string, *>}>}} [decorators]
- * @constructor
- */
-vs.ui.VisualContext = function(construct, options, decorators) {};
-
-
-/**
- * @param {vs.ui.DataHandler|{data: Array.<vs.models.DataSource>, visualizations: (Array.<vs.ui.VisualContext>|undefined), children: (Array.<vs.ui.DataHandler>|undefined), name: (string|undefined)}} options
- * @constructor
- */
-vs.ui.DataHandler = function(options) {};
-
-/**
- * @type {string}
- * @name vs.ui.DataHandler#name
- */
-vs.ui.DataHandler.prototype.name;
-
-/**
- * @type {Array.<vs.models.DataSource>}
- * @name vs.ui.DataHandler#data
- */
-vs.ui.DataHandler.prototype.data;
-
-/**
- * @type {u.Event.<vs.models.DataSource>}
- * @name vs.ui.DataHandler#dataChanged
- */
-vs.ui.DataHandler.prototype.dataChanged;
-
-/**
- * @type {Array.<vs.ui.DataHandler>}
- * @name vs.ui.DataHandler#children
- */
-vs.ui.DataHandler.prototype.children;
-
-/**
- * @type {Array.<vs.ui.VisualContext>}
- * @name vs.ui.DataHandler#visualizations
- */
-vs.ui.DataHandler.prototype.visualizations;
-/**
- * @param {vs.models.Query|Array.<vs.models.Query>} queries
- * @returns {Promise.<vs.models.DataSource>}
- */
-vs.ui.DataHandler.prototype.query = function(queries) {};
-
-
-/**
  * @param {angular.Scope} $scope
- * @param {angular.$templateCache} $templateCache
+ * @param {vs.async.TaskService} taskService
+ * @param {angular.$timeout} $timeout
  * @constructor
  * @extends {ngu.Directive}
  */
-vs.directives.DataContext = function($scope, $templateCache) {};
+vs.directives.LoadingDecorator = function($scope, taskService, $timeout) {};
 
 /**
- * @type {vs.ui.DataHandler}
- * @name vs.directives.DataContext#handler
+ * @param {angular.Scope} $scope
+ * @param {jQuery} $element
+ * @param {angular.Attributes} $attrs
+ * @param controller
+ * @override
  */
-vs.directives.DataContext.prototype.handler;
+vs.directives.LoadingDecorator.prototype.link = function($scope, $element, $attrs, controller) {};
+
 
 /**
- * @type {string}
- * @name vs.directives.DataContext#template
+ * @constructor
+ * @extends vs.ui.VisHandler
  */
-vs.directives.DataContext.prototype.template;
+vs.ui.svg.SvgVis = function () {};
+
+vs.ui.svg.SvgVis.prototype.beginDraw = function () {};
+
+
 
 
