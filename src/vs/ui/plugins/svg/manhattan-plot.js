@@ -99,6 +99,9 @@ vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw = function() {
       .style('stroke', stroke)
       .style('stroke-width', strokeThickness);
 
+    selection.append('path')
+        .attr('class', 'DEBUG');
+
     selection.exit()
       .remove();
 

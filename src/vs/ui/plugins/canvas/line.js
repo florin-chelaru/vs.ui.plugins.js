@@ -55,7 +55,7 @@ vs.ui.plugins.canvas.Line = (function() {
         'strokeThickness': vs.ui.Setting.PredefinedSettings['strokeThickness'],
         'selectFill': vs.ui.Setting.PredefinedSettings['selectFill'],
         'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
-        'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness']
+        'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness'],
     });
 
     Object.defineProperties(Line.prototype, {
@@ -114,13 +114,19 @@ vs.ui.plugins.canvas.Line = (function() {
     Line.prototype.endDraw = function() {
         var self = this;
         var args = arguments;
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
             /** @type {vs.models.DataSource} */
             var data = self.data;
-            if (!self.data.isReady) { resolve(); return; }
+            if (!self.data.isReady) {
+                resolve();
+                return;
+            }
 
             // Nothing to draw
-            if (!data.nrows) { resolve(); return; }
+            if (!data.nrows) {
+                resolve();
+                return;
+            }
 
             var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
             var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
@@ -144,14 +150,16 @@ vs.ui.plugins.canvas.Line = (function() {
                     .scale(xScale, yScale)
                     .translate({'x': margins.left, 'y': margins.top});
             var items = data.asDataRowArray();
+
+            //console.log(items[0].info(row));
+
             var colorOption = ['red', 'blue'];
 
-            for(var j = 0; j < colorOption.length; j++) {
+            for (var j = 0; j < colorOption.length; j++) {
                 var startPoint = transform.calc({
                     x: parseFloat(items[0].info(row)),
                     y: items[0].val(cols[j], valsLabel)
                 });
-                console.log(items[0].info(row), items[0].val(cols[j],valsLabel));
                 context.lineWidth = strokeThickness;
                 context.strokeStyle = colorOption[j];
                 context.beginPath();
@@ -171,30 +179,21 @@ vs.ui.plugins.canvas.Line = (function() {
 
                 context.closePath();
             }
-
-
-            /*
-            // ... draw them asynchronously, which takes a bit longer, but keeps the UI responsive
-            u.async.each(items, function(d) {
-                return new Promise(function(drawCircleResolve, drawCircleReject) {
-                    setTimeout(function() {
-                        drawCircleResolve();
-                    }, 0);
-                });
-            }).then(resolve, reject);*/
             resolve();
-        }).then(function() {
+        }).then(function () {
             return vs.ui.canvas.CanvasVis.prototype.endDraw.apply(self, args);
         });
-
+    };
         /**
          * @param {number} x
          * @param {number} y
          * @returns {Array.<vs.models.DataRow>}
          */
         Line.prototype.getItemsAt = function(x, y) {
+
             if (!this[_quadTree]) { return []; }
             return this[_quadTree].collisions(x, y).map(function(v) { return v.value; });
+
         };
 
 
@@ -229,7 +228,6 @@ vs.ui.plugins.canvas.Line = (function() {
             var context = canvas.getContext('2d');
             vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, selectFill, selectStroke, selectStrokeThickness);
         };
-    };
 
     return Line;
 })();

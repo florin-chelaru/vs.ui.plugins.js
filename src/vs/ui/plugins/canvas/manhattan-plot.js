@@ -174,7 +174,7 @@ vs.ui.plugins.canvas.ManhattanPlot = (function() {
    * @returns {Array.<vs.models.DataRow>}
    */
   ManhattanPlot.prototype.getItemsAt = function(x, y) {
-    if (!this[_quadTree]) { return []; }
+    if (!this[_quadTree]) {return []; }
     return this[_quadTree].collisions(x, y).map(function(v) { return v.value; });
   };
 

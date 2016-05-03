@@ -34,7 +34,10 @@ vs.ui.plugins.svg.Line.Settings = u.extend({}, vs.ui.VisHandler.Settings, {
     'strokeThickness': vs.ui.Setting.PredefinedSettings['strokeThickness'],
     'selectFill': vs.ui.Setting.PredefinedSettings['selectFill'],
     'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
-    'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness']
+    'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness'],
+
+    // Creating a filter for interpolate
+    //'interpolate' : new vs.ui.Setting({key:'interpolation', 'type':vs.ui.Setting.Type.STRING, 'defaultValue': 'linear', label:'item ratio', template:'_boundaries.html'})
 });
 
 Object.defineProperties(vs.ui.plugins.svg.Line.prototype, {
@@ -77,6 +80,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
         vis.attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
 
+        // Function to create a line graph based on the data, also determines interpolation
         var chooseLine = function(i){
             return d3.svg.line()
                 .x(function (d) {
@@ -88,123 +92,102 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                 .interpolate('linear');
         }
 
+
         var items = data.asDataRowArray();
-        var selection = vis.selectAll('path').data([0]);
-        var selection2 = vis.selectAll('path2').data([0]);
-        var xBox1 = vis.selectAll('g1').data([0]);
-        var focus1 = vis.selectAll('G1').data([0]);
-        var focus2 = vis.selectAll('G2').data([0]);
-
-        focus1.enter()
-            .append('g')
-            .attr("class", "focus")
-            .style("display", "none");
-        focus1.append("circle")
-            .attr("r", 4.5)
-            .attr("fill", "blue")
-            .attr("stroke: #9bffa9");
-        focus1.append("text")
+        var highlight = vis.selectAll('circle').data(items, vs.models.DataSource.key);
+        highlight.enter()
+            .append('circle')
+            .attr('class','vs-item');
+        highlight
+            .attr('r', itemRadius)
+            .attr('cx', function(d) { return xScale(parseFloat(d.info(row))); })
+            .attr('cy', function(d) { return yScale(d.val(cols[0], valsLabel)); })
+            .attr('fill', 'none')
+            .style('stroke', stroke)
+            .style('opacity', 0)
+            .style('stroke-width', strokeThickness);
+        var pos = vis.selectAll('coords').data(items, vs.models.DataSource.key);
+        pos.enter()
+            .append('text')
+            .attr('class', 'coords');
+        pos
             .attr("x", 9)
-            .attr("background", "black")
-            .attr("dy", ".35em");
+            .attr("background", "blue")
+            .attr("dy", ".35em")
+            .attr("opacity", 0);
 
-        focus2.enter()
-            .append('g')
-            .attr("class", "focus")
-            .style("display", "none");
-        focus2.append("circle")
-            .attr("r", 4.5)
-            .attr("fill", "red")
-            .attr("stroke: #9bffa9");
-        focus2.append("rect")
-            .attr()
-        focus2.append("text")
-            .attr("x", 9)
-            .attr("background", "black")
-            .attr("dy", ".35em");
+        var selections = [];
+        for(var col = 0; col < cols.length; col++){
+            var numStr = col.toString();
+            var fullName = "path";
 
-        selection.enter()
-            .append('path')
-            .attr('stroke', colorOption[0])
-            .attr("stroke-width", strokeThickness)
-            .attr("id", 'tag' + categories[0])
-            .attr('fill', 'none');
+            if(col != 0){
+                fullName = "path".concat(numStr);
+            }
 
-        selection.attr('d', chooseLine(0)(items));
-
-        selection2.enter()
-            .append('path')
-            .attr('stroke', colorOption[1])
-            .attr("stroke-width", strokeThickness)
-            .attr("id", 'tag' + categories[1])
-            .attr('fill', 'none');
-
-        selection2.attr('d', chooseLine(1)(items));
-
-        xBox1.enter()
-            .append('rect')
-            .data(items);
+            selections[col] = vis.selectAll(fullName).data([0]);
 
 
-        xBox1.attr("fill", "none")
-            .attr("pointer-events", "all")
-            .attr("width", width)
-            .attr("height", height)
-            .on("mouseover", function () {
-                focus1.style("display",null);
-                focus2.style("display",null);
-            })
-            .on("mouseout", function () {
-                focus1.style("display","none");
-                focus2.style("display","none");
-            })
-            .on("mousemove", function (d, i) {
+            selections[col].enter()
+                .append('path');
 
-                var x0 = xScale.invert(d3.mouse(this)[0]);
-                var y1 = items.map(function(item) { return item.val(cols[0], valsLabel); });
-                var y2 = items.map(function(item) { return item.val(cols[1], valsLabel); });
+            selections[col]
+                .attr('d', chooseLine(col)(items))
+                .attr('stroke', colorOption[col])
+                .attr("stroke-width", strokeThickness)
+                .attr("id", 'tag' + categories[col])
+                .attr('fill', 'none');
 
-                if(x0 > 550000){
-                    focus1.select("text").attr("x", -100);
-                    focus2.select("text").attr("x", -100);
-                } else {
-                    focus1.select("text").attr("x", 9);
-                    focus2.select("text").attr("x", 9);
-                }
-                var xArray = items.map(function(item) { return parseFloat(item.info(row)); });
-                var index1 = d3.bisectLeft(xArray,x0),
-                    d0 = xArray[index1 - 1],
-                    d1 = xArray[index1],
-                    d2 = x0 - d0 > d1 - x0 ? d1 : d0;
+            selections[col].exit().remove();
+        }
 
-                    if(d2 == d0){
-                        var showIndex = index1 - 1;
-                    } else {
-                        var showIndex = index1;
-                    }
 
-                focus1.attr("transform", "translate(" + xScale(d2) + "," + yScale(y1[showIndex]) + ")");
-                focus1.select("text").text(d2 + ", " + y1[showIndex]);
-
-                var index2 = d3.bisectLeft(xArray,x0),
-                    h0 = xArray[index1 - 1],
-                    h1 = xArray[index1],
-                    h2 = x0 - h0 > h1 - x0 ? h1 : h0;
-
-                focus2.attr("transform", "translate(" + xScale(h2) + "," + yScale(y2[showIndex]) + ")");
-                focus2.select("text").text(h2 + ", " + y2[showIndex]);
-
-            });
-
-        selection.exit().remove();
-        selection2.exit().remove();
-        focus1.exit().remove();
-        focus2.exit().remove();
-        xBox1.exit().remove();
-
+        highlight.exit().remove();
 
         resolve();
     }).then(function(){
         return vs.ui.svg.SvgVis.prototype.endDraw.apply(self, args);
     });
+};
+
+/**
+ * @param {HTMLElement} viewport Can be canvas, svg, etc.
+ * @param {vs.models.DataRow} d
+ */
+vs.ui.plugins.svg.Line.prototype.highlightItem = function(viewport, d) {
+    var v = d3.select(viewport);
+    var row = (/** @type {Array.<string>} */ (this.optionValue('rows')))[0];
+    var selectFill = /** @type {string} */ (this.optionValue('selectFill'));
+    var selectStroke = /** @type {string} */ (this.optionValue('selectStroke'));
+    var selectStrokeThickness = /** @type {number} */ (this.optionValue('selectStrokeThickness'));
+    var items = v.selectAll('.vs-item').data([d], vs.models.DataSource.key);
+    items
+        .style('opacity', 1)
+        .style('stroke', selectStroke)
+        .style('stroke-width', selectStrokeThickness)
+        .style('fill', selectFill);
+
+    v.selectAll('.coords').data([d], vs.models.DataSource.key)
+        .text(d.info(row) + ", ")
+        .attr('opacity', 1);
+};
+
+/**
+ * @param {HTMLElement} viewport Can be canvas, svg, etc.
+ * @param {vs.models.DataRow} d
+ */
+vs.ui.plugins.svg.Line.prototype.unhighlightItem = function(viewport, d) {
+    var v = d3.select(viewport);
+    var fill = /** @type {string} */ (this.optionValue('fill'));
+    var stroke = /** @type {string} */ (this.optionValue('stroke'));
+    var strokeThickness = /** @type {number} */ (this.optionValue('strokeThickness'));
+    v.selectAll('.vs-item').data([d], vs.models.DataSource.key)
+        .style('stroke', stroke)
+        .style('opacity', 0)
+        .style('stroke-width', strokeThickness)
+        .style('fill', fill);
+
+    v.selectAll('.coords').data([d], vs.models.DataSource.key)
+        .attr('opacity', 0);
+
 };
