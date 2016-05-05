@@ -107,6 +107,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
             .style('opacity', 0)
             .style('stroke-width', strokeThickness);
         var pos = vis.selectAll('coords').data(items, vs.models.DataSource.key);
+
         pos.enter()
             .append('text')
             .attr('class', 'coords');
