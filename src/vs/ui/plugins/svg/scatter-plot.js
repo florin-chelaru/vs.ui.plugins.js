@@ -142,8 +142,10 @@ vs.ui.plugins.svg.ScatterPlot = (function() {
 
       var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
       var yBoundaries = /** @type {vs.models.Boundaries} */ (self.optionValue('yBoundaries'));
-      var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
-      var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
+      //var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
+      //var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
+      var xScale = /** @type {function(number): number} */ (self.optionFunctionValue('xScale'));
+      var yScale = /** @type {function(number): number} */ (self.optionFunctionValue('yScale'));
 
       var key = /** @type {string} */ (self.optionValue('mergeField'));
       var valueField = /** @type {string} */ (self.optionValue('valueField'));

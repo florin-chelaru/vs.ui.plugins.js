@@ -27,14 +27,14 @@ goog.inherits(vs.ui.plugins.svg.ManhattanPlot, vs.ui.svg.SvgVis);
  * @type {Object.<string, vs.ui.Setting>}
  */
 vs.ui.plugins.svg.ManhattanPlot.Settings = u.extend({}, vs.ui.VisHandler.Settings, {
-  'xVal': vs.ui.Setting.PredefinedSettings['xVal'],
-  'yVal': vs.ui.Setting.PredefinedSettings['yVal'],
+  'xField': vs.ui.Setting.PredefinedSettings['xField'],
+  'yField': vs.ui.Setting.PredefinedSettings['yField'],
   'xBoundaries': vs.ui.Setting.PredefinedSettings['xBoundaries'],
   'yBoundaries': vs.ui.Setting.PredefinedSettings['yBoundaries'],
   'xScale': vs.ui.Setting.PredefinedSettings['xScale'],
   'yScale': vs.ui.Setting.PredefinedSettings['yScale'],
   'cols': vs.ui.Setting.PredefinedSettings['cols'],
-  'itemRatio': new vs.ui.Setting({'key':'itemRatio', 'type':vs.ui.Setting.Type.NUMBER, 'defaultValue': 0.015, 'label':'item ratio', 'template':'_number.html'}),
+  'itemRatio': new vs.ui.Setting({'key':'itemRatio', 'type':vs.ui.Setting.Type.NUMBER, 'defaultValue': 0.015, 'label':'item ratio', 'template':'_slider.html', 'possibleValues': {'min': 0.001, 'max': 0.1, 'step': 0.001}}),
   'fills': vs.ui.Setting.PredefinedSettings['fills'],
   'fillOpacity': vs.ui.Setting.PredefinedSettings['fillOpacity'],
   'strokes': vs.ui.Setting.PredefinedSettings['strokes'],
@@ -69,15 +69,18 @@ vs.ui.plugins.svg.ManhattanPlot.prototype.endDraw = function() {
     if (!data.length || !vs.models.DataSource.allDataIsReady(data)) { resolve(); return; }
 
     var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
-    var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
-    var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
+    /*var xScale = /!** @type {function(number): number} *!/ (self.optionValue('xScale'));
+    var yScale = /!** @type {function(number): number} *!/ (self.optionValue('yScale'));*/
+    var xScale = /** @type {function(number): number} */ (self.optionFunctionValue('xScale'));
+    var yScale = /** @type {function(number): number} */ (self.optionFunctionValue('yScale'));
 
-    var x = /** @type {string} */ (self.optionValue('xVal'));
-    var y = /** @type {string} */ (self.optionValue('yVal'));
+    var x = /** @type {string} */ (self.optionValue('xField'));
+    var y = /** @type {string} */ (self.optionValue('yField'));
 
-    var fills = /** @type {function(*):string} */ (self.optionValue('fills'));
+    //var fills = /** @type {function(*):string} */ (self.optionValue('fills'));
+    var fills = /** @type {function(*):string} */ (self.optionFunctionValue('fills'));
     var fillOpacity = /** @type {number} */ (self.optionValue('fillOpacity'));
-    var strokes = /** @type {function(*):string} */ (self.optionValue('strokes'));
+    var strokes = /** @type {function(*):string} */ (self.optionFunctionValue('strokes'));
     var strokeThickness = /** @type {number} */ (self.optionValue('strokeThickness'));
     var itemRatio = /** @type {number} */ (self.optionValue('itemRatio'));
     var width = /** @type {number} */ (self.optionValue('width'));
@@ -166,8 +169,8 @@ vs.ui.plugins.svg.ManhattanPlot.prototype.unhighlightItem = function(e, objects)
   var elems = viewport.selectAll('.vs-item').filter(function(d) { return key(d) in map; });
   if (elems.empty()) { return; }
 
-  var fills = /** @type {function(*):string} */ (this.optionValue('fills'));
-  var strokes = /** @type {function(*):string} */ (this.optionValue('strokes'));
+  var fills = /** @type {function(*):string} */ (this.optionFunctionValue('fills'));
+  var strokes = /** @type {function(*):string} */ (this.optionFunctionValue('strokes'));
   var fillOpacity = /** @type {number} */ (this.optionValue('fillOpacity'));
   var strokeThickness = /** @type {number} */ (this.optionValue('strokeThickness'));
 
@@ -178,7 +181,7 @@ vs.ui.plugins.svg.ManhattanPlot.prototype.unhighlightItem = function(e, objects)
 };
 
 vs.ui.plugins.svg.ManhattanPlot.prototype._key = function() {
-  var x = /** @type {string} */ (this.optionValue('xVal'));
+  var x = /** @type {string} */ (this.optionValue('xField'));
   return function(d) { return d['__d__'] + '-' + d[x]; };
 };
 //endregion
