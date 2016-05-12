@@ -56,6 +56,9 @@ vs.ui.plugins.canvas.Line = (function() {
         'selectFill': vs.ui.Setting.PredefinedSettings['selectFill'],
         'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
         'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness'],
+        // Settings to be added:
+        // ColorOptions
+        'colorOptions': new vs.ui.Setting({'key': 'colorOptions', 'type':vs.ui.Setting.Type.ARRAY, 'defaultValue': ['blue', 'red']} ),
     });
 
     Object.defineProperties(Line.prototype, {
@@ -127,7 +130,7 @@ vs.ui.plugins.canvas.Line = (function() {
                 resolve();
                 return;
             }
-
+            var colorOptions = (self.optionValue('colorOptions'));
             var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
             var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
             var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
@@ -151,17 +154,15 @@ vs.ui.plugins.canvas.Line = (function() {
                     .translate({'x': margins.left, 'y': margins.top});
             var items = data.asDataRowArray();
 
-            //console.log(items[0].info(row));
 
-            var colorOption = ['red', 'blue'];
-
-            for (var j = 0; j < colorOption.length; j++) {
+            // For loop to draw out each path in the dataRows
+            for (var j = 0; j < colorOptions.length; j++) {
                 var startPoint = transform.calc({
                     x: parseFloat(items[0].info(row)),
                     y: items[0].val(cols[j], valsLabel)
                 });
                 context.lineWidth = strokeThickness;
-                context.strokeStyle = colorOption[j];
+                context.strokeStyle = colorOptions[j];
                 context.beginPath();
                 context.moveTo(startPoint.x, startPoint.y);
 
@@ -226,6 +227,8 @@ vs.ui.plugins.canvas.Line = (function() {
             var point = transform.calc({x: parseFloat(d.info(row)), y: d.val(cols[0], valsLabel)});
 
             var context = canvas.getContext('2d');
+            context.font = "15px Arial";
+            context.fillText(d.info(row) + ", " + d.val(cols[0], valsLabel), 30, 15);
             vs.ui.canvas.CanvasVis.circle(context, point.x, point.y, itemRadius, selectFill, selectStroke, selectStrokeThickness);
         };
 

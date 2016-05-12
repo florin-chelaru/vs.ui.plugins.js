@@ -35,6 +35,11 @@ vs.ui.plugins.svg.Line.Settings = u.extend({}, vs.ui.VisHandler.Settings, {
     'selectFill': vs.ui.Setting.PredefinedSettings['selectFill'],
     'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
     'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness'],
+    // Settings to be added:
+    // Color
+    'colorOptions': new vs.ui.Setting({'key': 'colorOptions', 'type':vs.ui.Setting.Type.ARRAY, 'defaultValue': ['blue', 'red']} ),
+    'interpolation': new vs.ui.Setting({'key': 'interpolation', 'type':vs.ui.Setting.Type.STRING, 'defaultValue': 'linear'}),
+
 
     // Creating a filter for interpolate
     //'interpolate' : new vs.ui.Setting({key:'interpolation', 'type':vs.ui.Setting.Type.STRING, 'defaultValue': 'linear', label:'item ratio', template:'_boundaries.html'})
@@ -52,11 +57,16 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
     var args = arguments;
 
     return new Promise(function(resolve, reject) {
-        var colorOption = ['blue', 'red'];
-        var categories = ["tumor", "healthy"];
+
+        // This hardcoded data needs to be moved to settings
+        // Color for the lines
+        //var colorOption = ['blue', 'red'];
+        // Type of interpolation
+        //var interpolation = "linear";
+
 
         var data = self.data;
-
+        var colorOptions = (self.optionValue('colorOptions'));
         var margins = /** @type {vs.models.Margins} */ (self.optionValue('margins'));
         var xScale = /** @type {function(number): number} */ (self.optionValue('xScale'));
         var yScale = /** @type {function(number): number} */ (self.optionValue('yScale'));
@@ -71,6 +81,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
         var height = /** @type {number} */ (self.optionValue('height'));
         var itemRadius = Math.min(Math.abs(width), Math.abs(height)) * itemRatio;
         var svg = d3.select(self.$element[0]).select('svg');
+        var interpolation = (self.optionValue('interpolation'));
 
         var vis  = svg.select('.viewport');
         if (vis.empty()) {
@@ -89,12 +100,16 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
                 .y(function (d) {
                     return yScale(d.val(cols[i], valsLabel));
                 })
-                .interpolate('linear');
+                .interpolate(interpolation);
         }
 
 
         var items = data.asDataRowArray();
+
+        // The way highlight works is that there are circle items on each of the data points
+        // The opacity starts at 0 but becomes 1 when the mouse is over the data point
         var highlight = vis.selectAll('circle').data(items, vs.models.DataSource.key);
+
         highlight.enter()
             .append('circle')
             .attr('class','vs-item');
@@ -106,8 +121,9 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
             .style('stroke', stroke)
             .style('opacity', 0)
             .style('stroke-width', strokeThickness);
-        var pos = vis.selectAll('coords').data(items, vs.models.DataSource.key);
 
+        // The variable pos is used to show the x-coordinate that the mouse is currently on
+        var pos = vis.selectAll('coords').data(items, vs.models.DataSource.key);
         pos.enter()
             .append('text')
             .attr('class', 'coords');
@@ -117,6 +133,7 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
             .attr("dy", ".35em")
             .attr("opacity", 0);
 
+        // This for loop is to draw out each datarow and color them differently
         var selections = [];
         for(var col = 0; col < cols.length; col++){
             var numStr = col.toString();
@@ -134,9 +151,8 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 
             selections[col]
                 .attr('d', chooseLine(col)(items))
-                .attr('stroke', colorOption[col])
+                .attr('stroke', colorOptions[col])
                 .attr("stroke-width", strokeThickness)
-                .attr("id", 'tag' + categories[col])
                 .attr('fill', 'none');
 
             selections[col].exit().remove();
@@ -158,9 +174,13 @@ vs.ui.plugins.svg.Line.prototype.endDraw = function() {
 vs.ui.plugins.svg.Line.prototype.highlightItem = function(viewport, d) {
     var v = d3.select(viewport);
     var row = (/** @type {Array.<string>} */ (this.optionValue('rows')))[0];
+    var cols = /** @type {Array.<string>} */ (this.optionValue('cols'));
     var selectFill = /** @type {string} */ (this.optionValue('selectFill'));
     var selectStroke = /** @type {string} */ (this.optionValue('selectStroke'));
     var selectStrokeThickness = /** @type {number} */ (this.optionValue('selectStrokeThickness'));
+    var valsLabel = /** @type {string} */ (this.optionValue('vals'));
+
+    // After getting the item we make the overlying circle become opaque and thus visible
     var items = v.selectAll('.vs-item').data([d], vs.models.DataSource.key);
     items
         .style('opacity', 1)
@@ -169,7 +189,7 @@ vs.ui.plugins.svg.Line.prototype.highlightItem = function(viewport, d) {
         .style('fill', selectFill);
 
     v.selectAll('.coords').data([d], vs.models.DataSource.key)
-        .text(d.info(row) + ", ")
+        .text(d.info(row) + ", " + d.val(cols[0], valsLabel))
         .attr('opacity', 1);
 };
 
