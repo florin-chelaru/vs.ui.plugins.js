@@ -27,7 +27,8 @@ vs.ui.plugins.svg.LDHeatmap.Settings = u.extend({}, vs.ui.VisHandler.Settings, {
     'strokeThickness': vs.ui.Setting.PredefinedSettings['strokeThickness'],
     'selectFill': vs.ui.Setting.PredefinedSettings['selectFill'],
     'selectStroke': vs.ui.Setting.PredefinedSettings['selectStroke'],
-    'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness']
+    'selectStrokeThickness': vs.ui.Setting.PredefinedSettings['selectStrokeThickness'],
+    'rotation': new vs.ui.Setting({'key': 'rotation', 'type': vs.ui.Setting.Type.BOOLEAN})
 });
 
 Object.defineProperties(vs.ui.plugins.svg.LDHeatmap.prototype, {
@@ -41,20 +42,6 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
     var args = arguments;
     return new Promise(function(resolve, reject) {
         var data = self.data;
-
-        /*var dataArray = {
-            "nrows": 10,
-            "ncols": 10,
-            "rows": [
-                {"label": "id", "d": ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]}
-            ],
-            "cols": [
-                {"label": "id", "d": ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]}
-            ],
-            "vals":[
-                {"label": "correlation", "boundaries": {"min": 0, "max": 1}, "d": [1, 0.599, 0.858, 0.5491, 0.521, 0.2598, 0.3858, 0.823, 0.6673, 0.3471, 0.599, 1, 0.5979, 0.5942, 0.8378, 0.5906, 0.9196, 0.708, 0.397, 0.9149, 0.858, 0.5979, 1, 0.6013, 0.3863, 0.21067, 0.5769, 0.18874, 0.48545, 0.7273, 0.5491, 0.5942, 0.6013, 1, 0.8163, 0.9261, 0.16882, 0.444, 0.6611, 0.02657, 0.521, 0.8378, 0.3863, 0.8163, 1, 0.3869, 0.223, 0.5229, 0.952, 0.177, 0.2598, 0.5906, 0.21067, 0.9261, 0.3869, 1, 0.06935, 0.13751, 0.539, 0.7744, 0.3858, 0.9196, 0.5769, 0.16882, 0.223, 0.06935, 1, 0.567, 0.6484, 0.2659, 0.823, 0.708, 0.18874, 0.444, 0.5229, 0.13751, 0.567, 1, 0.7609, 0.2278, 0.6673, 0.397, 0.48545, 0.6611, 0.952, 0.539, 0.6484, 0.7609, 1, 0.65442, 0.3471, 0.9149, 0.7273, 0.026576, 0.17701, 0.7744, 0.26593, 0.2278, 0.6544, 1]}
-            ]
-        };*/
 
         if (!data.nrows || !data.ncols) {
             resolve();
@@ -70,18 +57,20 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
         var fill = /** @type {string} */ (self.optionValue('fill'));
         var stroke = /** @type {string} */ (self.optionValue('stroke'));
         var strokeThickness = /** @type {number} */ (self.optionValue('strokeThickness'));
+        var rotation = /** @type {boolean} */ (self.optionValue('rotation'));
+
 
         var xScale = d3.scale.linear()
-            .domain([0, cols.length])
-            .range([0, width - margins.left - margins.right]);
+            .domain([0, data.ncols])
+            .range([0, width - margins.left - margins.right-width/25]);
 
         var yScale = d3.scale.linear()
             .domain([0, data.nrows])
             .range([0, height - margins.top - margins.bottom]);
 
-        var color = d3.scale.linear()
-            .domain([0, 1])
-            .range(["white", "darkblue"]);
+        var sideLengthScale = d3.scale.linear()
+            .domain([0, data.nrows+1])
+            .range([0, height - margins.top - margins.bottom]);
 
         var colorScale = d3.scale.linear()
             .domain([yBoundaries.min, yBoundaries.max])
@@ -95,143 +84,253 @@ vs.ui.plugins.svg.LDHeatmap.prototype.endDraw = function() {
                 .attr('class', 'viewport');
         }
         viewport
-            .attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
-
-        var labels = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"];
-
-        var sideLength = 30;
-        //var data = dataArray["vals"][0]["d"];
-        //var dataSize = Math.sqrt(data.length);
+        .attr('transform', 'translate(' + margins.left + ', ' + margins.top + ')');
 
         var items = data.asDataRowArray();
+        var labels = data.rows[0]['d'];
+
         var selection = viewport.selectAll('g').data(items, vs.models.DataSource.key);
-        console.log(items);
-        /*var getData = function (d) {
-            var usableData = [];
-            var currentList = [];
-            var i=0;
-            while (i<100) {
-                currentList.push(d[i]);
-                if (i % 10 == 9) {
-                    usableData.push(currentList);
-                    currentList = [];
-                }
-                i=i+1;
-            }
-            return usableData;
-        };*/
-
-        //var selection = viewport.selectAll('g').data(getData(data));
-
 
         selection.enter()
             .append('g')
             .attr('class', 'vs-item');
 
-        selection
-            .attr('transform', function(d, i) { return 'translate(0,' + yScale(i) + ')'; })
-            .each(function(d, i) {
-                var row = i;
-                var cells = d3.select(this).selectAll('rect').data(cols);
-                console.log(cells);
-                /*.data(function (d) {
-                        d.reverse();
-                        console.log(d);
-                        return d.slice(0, dataSize - row);
-                    });*/
-                cells
-                    .enter()
-                    .append('rect')
-                    .attr('class', 'vs-cell');
-                cells
-                    .attr('x', function(col, j) { return xScale(j); })
-                    //.attr('y', yScale(i))
-                    .attr('y', 0)
-                    .attr('width', xScale(1))
-                    .attr('height', yScale(1))
-                    .attr('fill', "blue")
-                    .attr('fill', function(d) { return color(d.val(col, valsLabel)); });
-            });
+        if (rotation==false) {
+            selection
+                .attr('transform', function (d, i) {
+                    return 'translate(0,' + yScale(i) + ')';
+                })
+                .each(function (d, i) {
+                    col = [];
+                    for (j = items.length - 1; j >= i; j--) {
+                        col.push(cols[j]);
+                    }
+                    var cells = d3.select(this).selectAll('rect').data(col);
+                    cells
+                        .enter()
+                        .append('rect')
+                        .attr('class', 'vs-cell');
+                    cells
+                        .attr('x', function (col, j) {
+                            return xScale(j);
+                        })
+                        .attr('width', xScale(1))
+                        .attr('height', yScale(1))
+                        .attr('fill', function (col) {
+                            return colorScale(d.val(col, valsLabel));
+                        });
+                });
+
+            var labelsGroup = svg.select('.labels');
+            if (labelsGroup.empty()) {
+                labelsGroup = svg.append('g').attr('class', 'labels');
+            }
+
+            var key = labelsGroup.selectAll("text")
+                .data(items, vs.models.DataSource.key);
+
+            key.enter()
+                .append("text");
+
+            key
+                .attr("x", function(d,i) { return (items.length-i +.5) * xScale(1);})
+                .attr("y", function(d,i) { return yScale(1) * (i+2)})
+                .text(function(d,i) { return labels[i];});
+
+            key.exit()
+                .remove();
+
+        }
+
+        if (rotation == true) {
+            var sideLength = Math.min(xScale(1) / Math.sqrt(2), sideLengthScale(1) * Math.sqrt(2));
+            selection
+                .attr('transform', function (d, i) {
+                    return 'translate(0,' + sideLength * (i) + ')';
+                })
+                .each(function (d, i) {
+                    col = [];
+                    for (j = items.length - 1; j >= i; j--) {
+                        col.push(cols[j]);
+                    }
+                    var cells = d3.select(this).selectAll('rect').data(col);
+                    cells
+                        .enter()
+                        .append('rect')
+                        .attr('class', 'vs-cell');
+                    cells
+                        .attr('x', function (col, j) {
+                            return sideLength * j;
+                        })
+                        .attr('width', sideLength)
+                        .attr('height', sideLength)
+                        .attr('fill', function (col) {
+                            return colorScale(d.val(col, valsLabel));
+                        });
+                });
+            var translateX = width / 2 - sideLength * items.length / Math.sqrt(2);
+            var translateY = sideLength*items.length/Math.sqrt(2) - sideLength*items.length;
+
+            viewport
+                .attr("transform", "translate(" + translateX + "," + translateY + ") rotate(45, 0, " + sideLength * items.length + ")");
+
+            var labelsGroup = svg.select('.labels');
+            if (labelsGroup.empty()) {
+                labelsGroup = svg.append('g').attr('class', 'labels');
+            }
+
+
+            var key = labelsGroup.selectAll("text")
+                .data(items, vs.models.DataSource.key);
+
+            key.enter()
+                .append("text");
+
+            key
+                .attr("x", function(d,i) { return (items.length-i) * xScale(1);})
+                .attr("y", function(d,i) { return sideLength * items.length / Math.sqrt(2) + sideLength})
+                .text(function(d,i) { return labels[i];});
+
+            key.exit()
+                .remove();
+        }
 
         selection.exit()
             .remove();
 
 
-
-        /*
-        var rowSelector = viewport.append("rect")
-            .attr("x", 0)
-            .attr("id", "row")
-            .attr("class", "border")
-            .attr("y", 0)
-            .attr("width", (dataSize - 1) * sideLength)
-            .attr("height", sideLength)
-            .style("fill", "none")
-            .style("stroke-width", sideLength / 10);
-
-        var columnSelector = viewport.append("rect")
-            .attr("x", 0)
-            .attr("id", "column")
-            .attr("class", "border")
-            .attr("y", 0)
-            .attr("width", sideLength)
-            .attr("height", (dataSize - 1) * sideLength)
-            .style("fill", "none")
-            .style("stroke-width", sideLength / 10);
-
-        viewport.on('mousemove', function () {
-            var mousePos = d3.mouse(this);
-            if ((mousePos[0] + mousePos[1]) < dataSize * sideLength) {
-                var row = (mousePos[1] - mousePos[1] % sideLength) / sideLength;
-                var column = (mousePos[0] - mousePos[0] % sideLength) / sideLength;
-                d3
-                    .select("#row")
-                    .attr("y", function () {
-                        return row * sideLength;
-                    })
-                    .style("stroke", "black")
-                    .attr("width", function () {
-                        return (dataSize - row) * sideLength;
-                    });
-                d3
-                    .select("#column")
-                    .attr("x", function () {
-                        return column * sideLength;
-                    })
-                    .style("stroke", "black")
-                    .attr("height", function () {
-                        return (dataSize - column) * sideLength;
-                    })
-            }
-            else {
-                d3
-                    .selectAll(".border")
-                    .style("stroke", "none");
-            }
-        });
-*/
-        /*var key = viewport.selectAll("text")
-            .data(labels)
-            .enter()
-            .append("text")
-            .attr("x", function (d, i) {
-                return (dataSize - i) * sideLength + sideLength / 4;
-            })
-            .attr("y", function (d, i) {
-                return (i + 1) * sideLength;
-            })
-            .text(function (d, i) {
-                return d;
-            });*/
-
-        /*viewport
-            .attr("transform", "translate(" + sideLength / 3 * 2 + "," + 6 * sideLength
-                + ")rotate(45," + dataSize * sideLength + "," + dataSize / 2 * sideLength + ")");
-*/
         resolve();
     }).then(function() {
         return vs.ui.svg.SvgVis.prototype.endDraw.apply(self, args);
     });
 
+};
+
+vs.ui.plugins.svg.LDHeatmap.prototype.highlightItem = function(viewport, d) {
+    var v = d3.select(viewport);
+    var selectFill = /** @type {string} */ (this.optionValue('selectFill'));
+    var selectStroke = /** @type {string} */ (this.optionValue('selectStroke'));
+    var selectStrokeThickness = /** @type {number} */ (this.optionValue('selectStrokeThickness'));
+    var valsLabel = /** @type {string} */ (this.optionValue('vals'));
+    var yBoundaries = /** @type {vs.models.Boundaries} */ (this.optionValue('yBoundaries'));
+    var cols = /** @type {Array.<string>} */ (this.optionValue('cols'));
+    var margins = /** @type {vs.models.Margins} */ (this.optionValue('margins'));
+    var width = /** @type {number} */ (this.optionValue('width'));
+    var height = /** @type {number} */ (this.optionValue('height'));
+    var rotation = /** @type {boolean} */ (this.optionValue('rotation'));
+
+    var xScale = d3.scale.linear()
+        .domain([0, cols.length])
+        .range([0, width - margins.left - margins.right-width/25]);
+
+    var yScale = d3.scale.linear()
+        .domain([0, d.data.nrows])
+        .range([0, height - margins.top - margins.bottom]);
+
+    var sideLengthScale = d3.scale.linear()
+        .domain([0, d.data.nrows+1])
+        .range([0, height - margins.top - margins.bottom]);
+
+    var colorScale = d3.scale.linear()
+        .domain([yBoundaries.min, yBoundaries.max])
+        .range(['#ffffff', selectFill]);
+
+    v.on('mousemove', function () {
+        mousePos = d3.mouse(this);
+    });
+
+    if (rotation==true) {
+        var itemHeight = Math.min(xScale(1) / Math.sqrt(2), sideLengthScale(1) * Math.sqrt(2));
+        var itemWidth = itemHeight;
+    }
+    else {
+        var itemHeight = (height - margins.top - margins.bottom) / d.data.nrows;
+        var itemWidth = xScale(1);
+        var column = Math.floor(mousePos[0] / xScale(1));
+    }
+
+    var minHeight = Math.max(itemHeight, 25); // a selected row will increase size to this height if necessary
+    var heightScale = minHeight / itemHeight;
+    var dif = minHeight - itemHeight;
+    var items = v.selectAll('.vs-item').data([d], vs.models.DataSource.key);
+
+    v.append('rect')
+        .attr('class', 'vs-item-border')
+        .attr('x', -selectStrokeThickness)
+        .attr('y', d.index * itemHeight - selectStrokeThickness - 0.5 * dif)
+        .attr('width', (d.data.nrows - d.index) * itemWidth + 2*selectStrokeThickness)
+        .attr('height', dif + itemHeight + 2 * selectStrokeThickness) // dif + itemHeight
+        .style('stroke', selectStroke)
+        .style('stroke-width', 4*selectStrokeThickness)
+        .style('fill', 'none');
+
+    if (rotation==true) { //Column rectangle
+        v.append('rect')
+            .attr('class', 'vs-item-border')
+            .attr('x', column * itemWidth)
+            .attr('y', -selectStrokeThickness)
+            .attr('width', itemWidth)
+            .attr('height', (d.data.ncols - column) * itemHeight)
+            .style('stroke', selectStroke)
+            .style('stroke-width', 4 * selectStrokeThickness)
+            .style('fill', 'none');
+    }
+
+    items
+        .attr('transform', function(d, i) {
+            return 'translate(0, ' + (itemHeight * d.index - dif * 0.5) + ') scale(1, ' + heightScale + ')';
+        });
+
+    $(items[0]).appendTo($(viewport));
+};
+
+/**
+ * @param {HTMLElement} viewport Can be canvas, svg, etc.
+ * @param {vs.models.DataRow} d
+ */
+
+vs.ui.plugins.svg.LDHeatmap.prototype.unhighlightItem = function(viewport, d) {
+    var v = d3.select(viewport);
+    var fill = /** @type {string} */ (this.optionValue('fill'));
+    var yBoundaries = /** @type {vs.models.Boundaries} */ (this.optionValue('yBoundaries'));
+    var valsLabel = /** @type {string} */ (this.optionValue('vals'));
+    var margins = /** @type {vs.models.Margins} */ (this.optionValue('margins'));
+    var width = /** @type {number} */ (this.optionValue('width'));
+    var height = /** @type {number} */ (this.optionValue('height'));
+    var cols = /** @type {Array.<string>} */ (this.optionValue('cols'));
+    var rotation = /** @type {boolean} */ (this.optionValue('rotation'));
+
+    var xScale = d3.scale.linear()
+        .domain([0, cols.length])
+        .range([0, width - margins.left - margins.right-width/25]);
+    var yScale = d3.scale.linear()
+        .domain([0, d.data.nrows])
+        .range([0, height - margins.top - margins.bottom]);
+    var sideLengthScale = d3.scale.linear()
+        .domain([0, d.data.nrows+1])
+        .range([0, height - margins.top - margins.bottom]);
+    var colorScale = d3.scale.linear()
+        .domain([yBoundaries.min, yBoundaries.max])
+        .range(['#ffffff', fill]);
+
+    if (rotation==true) {
+        var sideLength = Math.min(xScale(1) / Math.sqrt(2), sideLengthScale(1) * Math.sqrt(2));
+    }
+
+    v.selectAll('.vs-item').data([d], vs.models.DataSource.key)
+        .each(function() {
+            var item = d3.select(this);
+            item.selectAll('.vs-cell')
+                .attr('fill', function(col) { return colorScale(d.val(col, valsLabel)); });
+        })
+        .attr('transform', function(d, i) {
+            if (rotation == true) {
+                return 'translate(0,' + sideLength * d.index + ')';
+            }
+            else {
+                return 'translate(0,' + yScale(d.index) + ')';
+            }
+        });
+    v.selectAll('.vs-item-border').remove();
 };
 

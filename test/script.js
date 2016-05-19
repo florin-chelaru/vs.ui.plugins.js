@@ -22,6 +22,12 @@ main.config(['configurationProvider', function(configuration) {
         svg: 'vs.ui.plugins.svg.ManhattanPlot',
         canvas: 'vs.ui.plugins.canvas.ManhattanPlot',
         default: 'svg'
+      },
+      ldheatmap: {
+        svg: 'vs.ui.plugins.svg.LDHeatmap'
+      },
+      heatmap: {
+        svg: 'vs.ui.plugins.svg.Heatmap'
       }
     },
     parallel: {
@@ -35,6 +41,464 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
   this.controller = {
     dataContexts: [
       u.reflection.wrap({
+        'name': 'LD',
+        'children': [],
+        'dataChanged': new u.Event(),
+        'visualizations': [
+          {
+            'construct': {
+              'render': 'canvas',
+              'type': 'scatterplot'
+            },
+            'options': {
+              'doubleBuffer': true,
+              'axisBoundaries': {},
+              'x': 10,
+              'y': 50,
+              'width': 250,
+              'height': 250,
+              'margins': {
+                'left': 10,
+                'right': 10,
+                'bottom': 10,
+                'top': 10
+              },
+              'cols': [0, 1],
+              'vals': 'correlation',
+              'selectStrokeThickness': 4
+            },
+            'decorators': {
+              'cls': [
+                'vs-window',
+                'vs-resizable',
+                'vs-movable',
+                'vs-loader'
+              ],
+              'elem': [
+                {
+                  'cls': 'vs-axis',
+                  'options': {
+                    'type': 'x',
+                    'ticks': 10
+                  }
+                },
+                {
+                  'cls': 'vs-axis',
+                  'options': {
+                    'type': 'y'
+                  }
+                },
+                {
+                  'cls': 'vs-grid',
+                  'options': {
+                    'type': 'x',
+                    'ticks': 10
+                  }
+                },
+                {
+                  'cls': 'vs-grid',
+                  'options': {
+                    'type': 'y'
+                  }
+                },
+                {
+                  'cls': 'vs-brushing'
+                }
+              ]
+            }
+          },
+          {
+            'construct': {
+              'render': 'svg',
+              'type': 'scatterplot'
+            },
+            'options': {
+              'doubleBuffer': false,
+              'axisBoundaries': {},
+              'x': 270,
+              'y': 50,
+              'width': 250,
+              'height': 250,
+              'margins': {
+                'left': 10,
+                'right': 10,
+                'bottom': 10,
+                'top': 10
+              },
+              'cols': [0, 1],
+              'vals': 'correlation',
+              'fill': 'rgba(30,96,212,0.3)',
+              'stroke': 'rgba(30,96,212,1)',
+              'strokeThickness': 1
+            },
+            'decorators': {
+              'cls': [
+                'vs-window',
+                'vs-resizable',
+                'vs-movable',
+                'vs-loader'
+              ],
+              'elem': [
+                {
+                  'cls': 'vs-axis',
+                  'options': {
+                    'type': 'x',
+                    'ticks': 10
+                  }
+                },
+                {
+                  'cls': 'vs-axis',
+                  'options': {
+                    'type': 'y'
+                  }
+                },
+                {
+                  'cls': 'vs-grid',
+                  'options': {
+                    'type': 'x',
+                    'ticks': 10
+                  }
+                },
+                {
+                  'cls': 'vs-grid',
+                  'options': {
+                    'type': 'y'
+                  }
+                },
+                {
+                  'cls': 'vs-brushing'
+                }
+              ]
+            }
+          },
+          {
+            'construct': {
+              'render': 'canvas',
+              'type': 'manhattan'
+            },
+            'options': {
+              'doubleBuffer': true,
+              //'xBoundaries': {'min': 1000, 'max': 100000},
+              'yBoundaries': {'min': 0, 'max': 1},
+              'x': 530,
+              'y': 50,
+              'width': 400,
+              'height': 115,
+              'fill': 'rgba(255,96,50,0.3)',
+              'stroke': 'rgba(255,96,50,1)',
+              'strokeThickness': 1,
+              'itemRatio': 0.03,
+              'selectFill': 'rgba(30,96,212,1)',
+              'selectStroke': '#ff0000',
+              'selectStrokeThickness': 4,
+              'margins': {
+                'left': 10,
+                'right': 10,
+                'bottom': 10,
+                'top': 10
+              },
+              'cols': [0, 1],
+              'vals': 'correlation',
+              'rows': ['start', 'end']
+            },
+            'decorators': {
+              'cls': [
+                'vs-window',
+                'vs-resizable',
+                'vs-movable',
+                'vs-loader'
+              ],
+              'elem': [
+                {
+                  'cls': 'vs-axis',
+                  'options': {
+                    'type': 'x',
+                    'ticks': 10
+                  }
+                },
+                {
+                  'cls': 'vs-axis',
+                  'options': {
+                    'type': 'y'
+                  }
+                },
+                {
+                  'cls': 'vs-grid',
+                  'options': {
+                    'type': 'x',
+                    'ticks': 10
+                  }
+                },
+                {
+                  'cls': 'vs-grid',
+                  'options': {
+                    'type': 'y'
+                  }
+                },
+                {
+                  'cls': 'vs-brushing'
+                }
+              ]
+            }
+          },
+          {
+            'construct': {
+              'render': 'svg',
+              'type': 'manhattan'
+            },
+            'options': {
+              'yBoundaries': {'min': 0, 'max': 1},
+              'x': 530,
+              'y': 185,
+              'width': 400,
+              'height': 115,
+              'itemRatio': 0.03,
+              'margins': {
+                'left': 10,
+                'right': 10,
+                'bottom': 10,
+                'top': 10
+              },
+              'cols': [0, 1],
+              'vals': 'correlation',
+              'rows': ['start', 'end']
+            },
+            'decorators': {
+              'cls': [
+                'vs-window',
+                'vs-resizable',
+                'vs-movable',
+                'vs-loader'
+              ],
+              'elem': [
+                {
+                  'cls': 'vs-axis',
+                  'options': {
+                    'type': 'x',
+                    'ticks': 10
+                  }
+                },
+                {
+                  'cls': 'vs-axis',
+                  'options': {
+                    'type': 'y'
+                  }
+                },
+                {
+                  'cls': 'vs-grid',
+                  'options': {
+                    'type': 'x',
+                    'ticks': 10
+                  }
+                },
+                {
+                  'cls': 'vs-grid',
+                  'options': {
+                    'type': 'y'
+                  }
+                },
+                {
+                  'cls': 'vs-brushing'
+                }
+              ]
+            }
+          },
+          {
+            'construct': {
+              'render': 'svg',
+              'type': 'heatmap'
+            },
+            'options': {
+              'xBoundaries': {'min': 1000, 'max': 100000},
+              'yBoundaries': {'min': 0, 'max': 1},
+              'x': 10,
+              'y': 320,
+              'width': 500,
+              'height': 400,
+              'margins': {
+                'left': 10,
+                'right': 10,
+                'bottom': 10,
+                'top': 10
+              },
+              'cols': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+              'vals': 'correlation',
+              'rows': ['start', 'end'],
+              'fill': 'rgb(30,96,212)'
+            },
+            'decorators': {
+              'cls': [
+                'vs-window',
+                'vs-resizable',
+                'vs-movable',
+                'vs-loader'
+              ],
+              'elem': [
+                {
+                  'cls': 'vs-brushing'
+                }
+              ]
+            }
+          },
+          {
+            construct: {
+              render: 'svg',
+              type: 'ldheatmap'
+            },
+            options: {
+              xBoundaries: {min: 1000, max: 100000},
+              yBoundaries: {min: 0, max: 1},
+              x: 530,
+              y: 320,
+              width: 400,
+              height: 200,
+              margins: {
+                left: 10,
+                right: 10,
+                bottom: 10,
+                top: 10
+              },
+              cols: u.array.range(10),
+              vals: 'v0',
+              rows: ['start', 'end'],
+              'fill': 'rgb(30,96,212)',
+              rotation: true
+            },
+            decorators: {
+              cls: [
+                'vs-window',
+                'vs-resizable',
+                'vs-movable'
+              ],
+              elem: [
+                {
+                  'cls': 'vs-brushing'
+                }
+              ]
+            }
+          }
+        ],
+
+        'data': u.reflection.wrap({
+          "name": "LD",
+          "nrows": 10,
+          "ncols": 10,
+          "rows": [
+            {"label": "id", "d": ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]},
+            {"label": "chr", "d": ["chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr1"]},
+            {"label": "start", "d": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]},
+            {"label": "end", "d": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+          ],
+          "cols": [
+            {"label": "id", "d": ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]},
+            {"label": "chr", "d": ["chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr1"]},
+            {"label": "start", "d": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]},
+            {"label": "end", "d": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+          ],
+          "vals": [
+            {
+              "label": "correlation",
+              "boundaries": {"min": 0, "max": 1},
+              d: [1, 0.599, 0.858, 0.5491, 0.521, 0.2598, 0.3858, 0.823, 0.6673, 0.3471, 0.599, 1, 0.5979, 0.5942, 0.8378, 0.5906, 0.9196, 0.708, 0.397, 0.9149, 0.858, 0.5979, 1, 0.6013, 0.3863, 0.21067, 0.5769, 0.18874, 0.48545, 0.7273, 0.5491, 0.5942, 0.6013, 1, 0.8163, 0.9261, 0.16882, 0.444, 0.6611, 0.02657, 0.521, 0.8378, 0.3863, 0.8163, 1, 0.3869, 0.223, 0.5229, 0.952, 0.177, 0.2598, 0.5906, 0.21067, 0.9261, 0.3869, 1, 0.06935, 0.13751, 0.539, 0.7744, 0.3858, 0.9196, 0.5769, 0.16882, 0.223, 0.06935, 1, 0.567, 0.6484, 0.2659, 0.823, 0.708, 0.18874, 0.444, 0.5229, 0.13751, 0.567, 1, 0.7609, 0.2278, 0.6673, 0.397, 0.48545, 0.6611, 0.952, 0.539, 0.6484, 0.7609, 1, 0.65442, 0.3471, 0.9149, 0.7273, 0.026576, 0.17701, 0.7744, 0.26593, 0.2278, 0.6544, 1]
+            }
+          ],
+          'query': [
+            new vs.models.Query({'target': 'rows', 'targetLabel': 'chr', 'test': '==', 'testArgs': 'chr1'}),
+            //new vs.models.Query({'target': 'rows', 'targetLabel': 'start', 'test': '<', 'testArgs': '10000'}),
+            new vs.models.Query({'target': 'rows', 'targetLabel': 'start', 'test': '<', 'testArgs': '10'}),
+            new vs.models.Query({'target': 'rows', 'targetLabel': 'end', 'test': '>=', 'testArgs': '0'})
+          ]
+        }, vs.models.DataSource)
+      }, vs.ui.DataHandler)
+    ]
+  };
+  /*this.controller = {
+    dataContexts: [
+      u.reflection.wrap({
+        name: 'Genetic Variants',
+        children: [],
+        dataChanged: new u.Event(),
+        visualizations: [
+          {
+            construct: {
+              render: 'svg',
+              type: 'ldheatmap'
+            },
+            options: {
+              xBoundaries: {min: 1000, max: 100000},
+              yBoundaries: {min: 0, max: 1},
+              x: 430,
+              y: 290,
+              width: 400,
+              height: 200,
+              margins: {
+                left: 10,
+                right: 10,
+                bottom: 10,
+                top: 10
+              },
+              cols: u.array.range(10),
+              vals: 'v0',
+              rows: ['start', 'end']
+            },
+            decorators: {
+              cls: [
+                'vs-window',
+                'vs-resizable',
+                'vs-movable'
+              ],
+              elem: [
+              ]
+            }
+          },
+          {
+            construct: {
+              render: 'svg',
+              type: 'heatmap'
+            },
+            options: {
+              xBoundaries: {min: 1000, max: 100000},
+              yBoundaries: {min: 0, max: 1},
+              x: 20,
+              y: 20,
+              width: 400,
+              height: 200,
+              margins: {
+                left: 10,
+                right: 10,
+                bottom: 10,
+                top: 10
+              },
+              cols: u.array.range(10),
+              vals: 'v0',
+              rows: ['start', 'end']
+            },
+            decorators: {
+              cls: [
+                'vs-window',
+                'vs-resizable',
+                'vs-movable'
+              ],
+              elem: [
+              ]
+            }
+          }
+        ],
+        data: u.reflection.wrap({
+          "nrows": 10,
+          "ncols": 10,
+          "rows": [
+            {"label": "id", "d": ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]}
+          ],
+          "cols": [
+            {"label": "id", "d": ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]}
+          ],
+          "vals":[
+            {"label": "correlation", "boundaries": {"min": 0, "max": 1}, "d": [1, 0.599, 0.858, 0.5491, 0.521, 0.2598, 0.3858, 0.823, 0.6673, 0.3471, 0.599, 1, 0.5979, 0.5942, 0.8378, 0.5906, 0.9196, 0.708, 0.397, 0.9149, 0.858, 0.5979, 1, 0.6013, 0.3863, 0.21067, 0.5769, 0.18874, 0.48545, 0.7273, 0.5491, 0.5942, 0.6013, 1, 0.8163, 0.9261, 0.16882, 0.444, 0.6611, 0.02657, 0.521, 0.8378, 0.3863, 0.8163, 1, 0.3869, 0.223, 0.5229, 0.952, 0.177, 0.2598, 0.5906, 0.21067, 0.9261, 0.3869, 1, 0.06935, 0.13751, 0.539, 0.7744, 0.3858, 0.9196, 0.5769, 0.16882, 0.223, 0.06935, 1, 0.567, 0.6484, 0.2659, 0.823, 0.708, 0.18874, 0.444, 0.5229, 0.13751, 0.567, 1, 0.7609, 0.2278, 0.6673, 0.397, 0.48545, 0.6611, 0.952, 0.539, 0.6484, 0.7609, 1, 0.65442, 0.3471, 0.9149, 0.7273, 0.026576, 0.17701, 0.7744, 0.26593, 0.2278, 0.6544, 1]}
+          ]
+        }, vs.models.DataSource)
+      }, vs.ui.DataHandler)
+      /!*u.reflection.wrap({
         name: 'Genetic Variants',
         children: [],
         dataChanged: new u.Event(),
@@ -571,15 +1035,15 @@ main.controller('vs.MainController', ['$scope', '$templateCache', function($scop
               boundaries: { min: 0, max: 1 }
             }]
         }, vs.models.DataSource)
-      }, vs.ui.DataHandler)
+      }, vs.ui.DataHandler)*!/
     ]
-  };
+  };*/
 }]);
 
 main.controller('vs.DataContextController', ['$scope', function($scope) {
   /** @type {vs.ui.DataHandler} */
-  var dataHandler = $scope['vsDataContext'].handler.handler;
-  var $window = $scope['vsWindow'].handler.$window;
+  var dataHandler = $scope['vsDataContext'].handler;
+  var $window = $scope['vsWindow'].$window;
   var data = dataHandler.data;
   var range = vs.models.GenomicRangeQuery.extract(data.query);
   $scope.name = dataHandler.name;
